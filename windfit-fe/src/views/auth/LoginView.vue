@@ -101,11 +101,7 @@ async function handleLogin() {
     const res = await authService.login(username.value, password.value)
     if (res.success && res.data) {
       authStore.setAuth(res.data, res.data.token)
-      if (res.data.vaiTro === 'ADMIN') {
-        router.push('/admin/dashboard')
-      } else {
-        router.push('/admin/pos')
-      }
+      router.push('/admin/phieu-giam-gia')
     } else {
       errorMessage.value = res.message || 'Đăng nhập không thành công!'
     }
