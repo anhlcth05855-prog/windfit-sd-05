@@ -2,13 +2,13 @@
   <aside class="windfit-sidebar" :class="{ 'collapsed': isCollapsed }">
     <!-- Brand Header -->
     <div class="sidebar-header">
-      <router-link to="/admin/dashboard" class="brand-link">
+      <router-link to="/admin/phieu-giam-gia" class="brand-link">
         <div class="brand-logo-wrap">
-          <i class="bi bi-wind brand-icon"></i>
+          <i class="bi bi-tag-fill brand-icon"></i>
         </div>
         <div class="brand-details" v-show="!isCollapsed">
           <span class="brand-name">WINDFIT</span>
-          <span class="brand-sub">PERFORMANCE JACKETS</span>
+          <span class="brand-sub">QUẢN LÝ GIẢM GIÁ</span>
         </div>
       </router-link>
       <button class="toggle-btn d-none d-lg-flex" @click="toggleSidebar" :title="isCollapsed ? 'Mở rộng' : 'Thu gọn'">
@@ -18,59 +18,7 @@
 
     <!-- Navigation Menu -->
     <div class="sidebar-menu-wrapper custom-scrollbar">
-      <!-- Section: TỔNG QUAN -->
-      <div class="menu-section" v-if="authStore.isAdmin">
-        <span class="section-title" v-show="!isCollapsed">TỔNG QUAN</span>
-        <ul class="nav-list">
-          <li class="nav-item">
-            <router-link to="/admin/dashboard" class="nav-link-item" active-class="active">
-              <i class="bi bi-grid-1x2-fill nav-icon"></i>
-              <span class="nav-text" v-show="!isCollapsed">Bảng Điều Khiển</span>
-            </router-link>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Section: BÁN HÀNG & ĐƠN HÀNG -->
-      <div class="menu-section">
-        <span class="section-title" v-show="!isCollapsed">GIAO DỊCH & ĐƠN HÀNG</span>
-        <ul class="nav-list">
-          <li class="nav-item">
-            <router-link to="/admin/pos" class="nav-link-item pos-highlight" active-class="active">
-              <i class="bi bi-lightning-charge-fill nav-icon"></i>
-              <span class="nav-text" v-show="!isCollapsed">Bán Hàng Tại Quầy (POS)</span>
-              <span class="badge bg-warning text-dark ms-auto" v-show="!isCollapsed">HOT</span>
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link to="/admin/hoa-don" class="nav-link-item" active-class="active">
-              <i class="bi bi-receipt nav-icon"></i>
-              <span class="nav-text" v-show="!isCollapsed">Quản Lý Hóa Đơn</span>
-            </router-link>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Section: SẢN PHẨM & KHO -->
-      <div class="menu-section">
-        <span class="section-title" v-show="!isCollapsed">SẢN PHẨM & KHO</span>
-        <ul class="nav-list">
-          <li class="nav-item">
-            <router-link to="/admin/san-pham" class="nav-link-item" active-class="active">
-              <i class="bi bi-layers-fill nav-icon"></i>
-              <span class="nav-text" v-show="!isCollapsed">Áo Khoác Gió (SPCT)</span>
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link to="/admin/thuoc-tinh" class="nav-link-item" active-class="active">
-              <i class="bi bi-tags-fill nav-icon"></i>
-              <span class="nav-text" v-show="!isCollapsed">Thuộc Tính Sản Phẩm</span>
-            </router-link>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Section: KHUYẾN MẠI -->
+      <!-- Section: KHUYẾN MẠI & GIẢM GIÁ -->
       <div class="menu-section">
         <span class="section-title" v-show="!isCollapsed">KHUYẾN MẠI & GIẢM GIÁ</span>
         <ul class="nav-list">
@@ -84,25 +32,6 @@
             <router-link to="/admin/dot-giam-gia" class="nav-link-item" active-class="active">
               <i class="bi bi-fire nav-icon text-danger"></i>
               <span class="nav-text" v-show="!isCollapsed">Đợt Giảm Giá (Sale)</span>
-            </router-link>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Section: TÀI KHOẢN -->
-      <div class="menu-section">
-        <span class="section-title" v-show="!isCollapsed">KHÁCH HÀNG & NHÂN SỰ</span>
-        <ul class="nav-list">
-          <li class="nav-item">
-            <router-link to="/admin/khach-hang" class="nav-link-item" active-class="active">
-              <i class="bi bi-people-fill nav-icon"></i>
-              <span class="nav-text" v-show="!isCollapsed">Quản Lý Khách Hàng</span>
-            </router-link>
-          </li>
-          <li class="nav-item" v-if="authStore.isAdmin">
-            <router-link to="/admin/nhan-vien" class="nav-link-item" active-class="active">
-              <i class="bi bi-shield-lock-fill nav-icon"></i>
-              <span class="nav-text" v-show="!isCollapsed">Nhân Viên & Phân Quyền</span>
             </router-link>
           </li>
         </ul>
