@@ -16,6 +16,8 @@ public class PhieuGiamGiaResponseDTO {
     private Long id;
     private String maPhieuGiamGia;
     private String tenPhieuGiamGia;
+    private String moTa;
+    private String nhomPhieu;
     private String loaiGiamGia;
     private BigDecimal giaTriGiam;
     private BigDecimal giamToiDa;
@@ -27,4 +29,5 @@ public class PhieuGiamGiaResponseDTO {
     private LocalDateTime ngayTao;
     private Integer trangThai;
     private String tinhTrang;
+    private Integer soLuongKhachHang;
 }

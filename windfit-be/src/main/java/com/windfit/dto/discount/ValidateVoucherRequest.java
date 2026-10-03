@@ -1,7 +1,6 @@
 package com.windfit.dto.discount;
 
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,12 +14,23 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class ValidateVoucherRequest {
-    @NotBlank(message = "Ma voucher khong duoc de trong")
     private String maVoucher;
+    private String maPhieuGiamGia;
 
-    @NotNull
-    @DecimalMin(value = "0.0")
+    @NotNull(message = "Tổng tiền đơn hàng không được để trống")
+    @DecimalMin(value = "0.0", message = "Tổng tiền đơn hàng không được âm")
     private BigDecimal tongTienDonHang;
 
     private Long idKhachHang;
+    private String maKhachHang;
+
+    public String getEffectiveCode() {
+        if (maVoucher != null && !maVoucher.trim().isEmpty()) {
+            return maVoucher.trim();
+        }
+        if (maPhieuGiamGia != null && !maPhieuGiamGia.trim().isEmpty()) {
+            return maPhieuGiamGia.trim();
+        }
+        return null;
+    }
 }

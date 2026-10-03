@@ -19,13 +19,17 @@ public interface DotGiamGiaRepository extends JpaRepository<DotGiamGia, Long>, J
 
     boolean existsByMaDotGiamGia(String maDotGiamGia);
 
+    Optional<DotGiamGia> findTopByOrderByIdDesc();
+
     @Query("SELECT d FROM DotGiamGia d WHERE " +
            "(:keyword IS NULL OR LOWER(d.maDotGiamGia) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(d.tenDotGiamGia) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:hinhThuc IS NULL OR d.hinhThuc = :hinhThuc) AND " +
            "(:trangThai IS NULL OR d.trangThai = :trangThai) AND " +
            "(:tuNgay IS NULL OR d.ngayBatDau >= :tuNgay) AND " +
            "(:denNgay IS NULL OR d.ngayKetThuc <= :denNgay)")
     Page<DotGiamGia> searchDotGiamGia(
             @Param("keyword") String keyword,
+            @Param("hinhThuc") String hinhThuc,
             @Param("trangThai") Integer trangThai,
             @Param("tuNgay") LocalDateTime tuNgay,
             @Param("denNgay") LocalDateTime denNgay,
@@ -34,4 +38,15 @@ public interface DotGiamGiaRepository extends JpaRepository<DotGiamGia, Long>, J
 
     @Query("SELECT d FROM DotGiamGia d WHERE d.trangThai = 1 AND :now >= d.ngayBatDau AND :now <= d.ngayKetThuc")
     List<DotGiamGia> findActiveCampaigns(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(d) FROM DotGiamGia d WHERE d.trangThai = 1 AND :now >= d.ngayBatDau AND :now <= d.ngayKetThuc")
+    long countActiveCampaigns(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(d) FROM DotGiamGia d WHERE d.trangThai = 1 AND :now < d.ngayBatDau")
+    long countUpcomingCampaigns(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(d) FROM DotGiamGia d WHERE d.trangThai = 1 AND :now > d.ngayKetThuc")
+    long countExpiredCampaigns(@Param("now") LocalDateTime now);
+
+    long countByTrangThai(Integer trangThai);
 }

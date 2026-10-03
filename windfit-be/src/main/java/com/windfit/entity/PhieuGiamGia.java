@@ -43,6 +43,12 @@ public class PhieuGiamGia {
     @Column(name = "ngay_ket_thuc", nullable = false)
     private LocalDateTime ngayKetThuc;
 
+    @Column(name = "mo_ta", length = 500)
+    private String moTa;
+
+    @Column(name = "nhom_phieu", length = 50)
+    private String nhomPhieu;
+
     @Column(name = "ngay_tao", nullable = false)
     private LocalDateTime ngayTao;
 

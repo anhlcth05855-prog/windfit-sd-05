@@ -3,6 +3,7 @@ package com.windfit.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "dot_giam_gia")
@@ -23,6 +24,15 @@ public class DotGiamGia {
 
     @Column(name = "dieu_kien_ap_dung", length = 500)
     private String dieuKienApDung;
+
+    @Column(name = "hinh_thuc", length = 50)
+    private String hinhThuc; // 'THEO_MUA' hoặc 'FLASH_SALE'
+
+    @Column(name = "gio_bat_dau")
+    private LocalTime gioBatDau;
+
+    @Column(name = "gio_ket_thuc")
+    private LocalTime gioKetThuc;
 
     @Column(name = "ngay_bat_dau", nullable = false)
     private LocalDateTime ngayBatDau;

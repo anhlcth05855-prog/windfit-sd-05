@@ -24,13 +24,19 @@ public class PhieuGiamGiaRequestDTO {
     @NotBlank(message = "Tên phiếu giảm giá không được để trống")
     private String tenPhieuGiamGia;
 
+    private String moTa;
+
+    @Builder.Default
+    private String nhomPhieu = "CHUNG"; // CHUNG, HANG_THANH_VIEN, VIP_SINH_NHAT, SU_KIEN
+
     @NotBlank(message = "Loại giảm giá không được để trống")
-    private String loaiGiamGia;
+    private String loaiGiamGia; // PHAN_TRAM hoặc TIEN_MAT
 
     @NotNull(message = "Giá trị giảm không được để trống")
     @DecimalMin(value = "0.01", message = "Giá trị giảm phải lớn hơn 0")
     private BigDecimal giaTriGiam;
 
+    @DecimalMin(value = "0.0", message = "Mức giảm tối đa không được âm")
     private BigDecimal giamToiDa;
 
     @NotNull(message = "Đơn hàng tối thiểu không được để trống")

@@ -19,15 +19,19 @@ public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia, Long
 
     boolean existsByMaPhieuGiamGia(String maPhieuGiamGia);
 
+    Optional<PhieuGiamGia> findTopByOrderByIdDesc();
+
     @Query("SELECT p FROM PhieuGiamGia p WHERE " +
            "(:keyword IS NULL OR LOWER(p.maPhieuGiamGia) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.tenPhieuGiamGia) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
            "(:loaiGiamGia IS NULL OR p.loaiGiamGia = :loaiGiamGia) AND " +
+           "(:nhomPhieu IS NULL OR p.nhomPhieu = :nhomPhieu) AND " +
            "(:trangThai IS NULL OR p.trangThai = :trangThai) AND " +
            "(:tuNgay IS NULL OR p.ngayBatDau >= :tuNgay) AND " +
            "(:denNgay IS NULL OR p.ngayKetThuc <= :denNgay)")
     Page<PhieuGiamGia> searchPhieuGiamGia(
             @Param("keyword") String keyword,
             @Param("loaiGiamGia") String loaiGiamGia,
+            @Param("nhomPhieu") String nhomPhieu,
             @Param("trangThai") Integer trangThai,
             @Param("tuNgay") LocalDateTime tuNgay,
             @Param("denNgay") LocalDateTime denNgay,
@@ -36,4 +40,15 @@ public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia, Long
 
     @Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 1 AND :now >= p.ngayBatDau AND :now <= p.ngayKetThuc AND p.soLuongDaDung < p.soLuong")
     List<PhieuGiamGia> findAvailableVouchers(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(p) FROM PhieuGiamGia p WHERE p.trangThai = 1 AND :now >= p.ngayBatDau AND :now <= p.ngayKetThuc AND p.soLuongDaDung < p.soLuong")
+    long countActiveVouchers(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(p) FROM PhieuGiamGia p WHERE p.trangThai = 1 AND :now < p.ngayBatDau")
+    long countUpcomingVouchers(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(p) FROM PhieuGiamGia p WHERE p.trangThai = 1 AND (:now > p.ngayKetThuc OR p.soLuongDaDung >= p.soLuong)")
+    long countExpiredOrDepletedVouchers(@Param("now") LocalDateTime now);
+
+    long countByTrangThai(Integer trangThai);
 }

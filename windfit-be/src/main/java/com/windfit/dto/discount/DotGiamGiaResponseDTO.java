@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,9 @@ public class DotGiamGiaResponseDTO {
     private String tenDotGiamGia;
     private String moTa;
     private String dieuKienApDung;
+    private String hinhThuc;
+    private LocalTime gioBatDau;
+    private LocalTime gioKetThuc;
     private LocalDateTime ngayBatDau;
     private LocalDateTime ngayKetThuc;
     private Integer trangThai;
