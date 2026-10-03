@@ -5,10 +5,12 @@ import com.windfit.dto.product.SanPhamChiTietResponseDTO;
 import com.windfit.entity.*;
 import com.windfit.repository.*;
 import lombok.RequiredArgsConstructor;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,7 +99,31 @@ class GiamGiaServiceImpl implements GiamGiaService {
         String cleanKw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
         String cleanType = (loaiGiamGia != null && !loaiGiamGia.trim().isEmpty()) ? loaiGiamGia.trim() : null;
 
-        Page<PhieuGiamGia> resultPage = phieuGiamGiaRepository.searchPhieuGiamGia(cleanKw, cleanType, trangThai, tuNgay, denNgay, pageable);
+        Specification<PhieuGiamGia> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (cleanKw != null) {
+                String pattern = "%" + cleanKw.toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("maPhieuGiamGia")), pattern),
+                        cb.like(cb.lower(root.get("tenPhieuGiamGia")), pattern)
+                ));
+            }
+            if (cleanType != null) {
+                predicates.add(cb.equal(root.get("loaiGiamGia"), cleanType));
+            }
+            if (trangThai != null) {
+                predicates.add(cb.equal(root.get("trangThai"), trangThai));
+            }
+            if (tuNgay != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("ngayBatDau"), tuNgay));
+            }
+            if (denNgay != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("ngayKetThuc"), denNgay));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<PhieuGiamGia> resultPage = phieuGiamGiaRepository.findAll(spec, pageable);
         return resultPage.map(this::mapVoucherToDTO);
     }
 
@@ -323,7 +349,28 @@ class GiamGiaServiceImpl implements GiamGiaService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         String cleanKw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
 
-        Page<DotGiamGia> resultPage = dotGiamGiaRepository.searchDotGiamGia(cleanKw, trangThai, tuNgay, denNgay, pageable);
+        Specification<DotGiamGia> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (cleanKw != null) {
+                String pattern = "%" + cleanKw.toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("maDotGiamGia")), pattern),
+                        cb.like(cb.lower(root.get("tenDotGiamGia")), pattern)
+                ));
+            }
+            if (trangThai != null) {
+                predicates.add(cb.equal(root.get("trangThai"), trangThai));
+            }
+            if (tuNgay != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("ngayBatDau"), tuNgay));
+            }
+            if (denNgay != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("ngayKetThuc"), denNgay));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<DotGiamGia> resultPage = dotGiamGiaRepository.findAll(spec, pageable);
         return resultPage.map(this::mapCampaignToDTO);
     }
 
