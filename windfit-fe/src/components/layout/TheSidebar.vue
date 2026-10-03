@@ -1,318 +1,427 @@
 <template>
-  <aside class="windfit-sidebar" :class="{ 'collapsed': isCollapsed }">
+  <aside class="windfit-sidebar-clean" :class="{ 'collapsed': isCollapsed }">
     <!-- Brand Header -->
-    <div class="sidebar-header">
-      <router-link to="/admin/phieu-giam-gia" class="brand-link">
-        <div class="brand-logo-wrap">
-          <i class="bi bi-tag-fill brand-icon"></i>
+    <div class="sidebar-brand-box">
+      <router-link to="/admin/dashboard" class="brand-container">
+        <div class="brand-logo-circle">
+          <img src="/windfit-logo.png" alt="WindFit Logo" class="brand-png-img" />
         </div>
-        <div class="brand-details" v-show="!isCollapsed">
-          <span class="brand-name">WINDFIT</span>
-          <span class="brand-sub">QUẢN LÝ GIẢM GIÁ</span>
+        <div class="brand-text-block" v-show="!isCollapsed">
+          <h2 class="brand-main-title">WINDFIT</h2>
+          <span class="brand-sub-title">PERFORMANCE JACKETS</span>
         </div>
       </router-link>
-      <button class="toggle-btn d-none d-lg-flex" @click="toggleSidebar" :title="isCollapsed ? 'Mở rộng' : 'Thu gọn'">
-        <i :class="isCollapsed ? 'bi bi-chevron-right' : 'bi bi-chevron-left'"></i>
-      </button>
     </div>
 
-    <!-- Navigation Menu -->
-    <div class="sidebar-menu-wrapper custom-scrollbar">
-      <!-- Section: KHUYẾN MẠI & GIẢM GIÁ -->
-      <div class="menu-section">
-        <span class="section-title" v-show="!isCollapsed">KHUYẾN MẠI & GIẢM GIÁ</span>
-        <ul class="nav-list">
-          <li class="nav-item">
-            <router-link to="/admin/phieu-giam-gia" class="nav-link-item" active-class="active">
-              <i class="bi bi-ticket-perforated-fill nav-icon"></i>
-              <span class="nav-text" v-show="!isCollapsed">Phiếu Giảm Giá (Voucher)</span>
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link to="/admin/dot-giam-gia" class="nav-link-item" active-class="active">
-              <i class="bi bi-fire nav-icon text-danger"></i>
-              <span class="nav-text" v-show="!isCollapsed">Đợt Giảm Giá (Sale)</span>
-            </router-link>
-          </li>
-        </ul>
-      </div>
-    </div>
+    <!-- Navigation Menu Items -->
+    <div class="sidebar-nav-container custom-scrollbar">
+      <ul class="nav-tree">
+        <!-- 1. Tổng quan -->
+        <li class="nav-row">
+          <router-link to="/admin/dashboard" class="nav-item-link" active-class="active">
+            <span class="item-icon-box text-blue">
+              <i class="fa-solid fa-table-cells-large"></i>
+            </span>
+            <span class="item-label" v-show="!isCollapsed">Tổng quan</span>
+          </router-link>
+        </li>
 
-    <!-- Sidebar Footer / User Profile -->
-    <div class="sidebar-user-footer">
-      <div class="user-info-card">
-        <img :src="authStore.user?.anhDaiDien || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'" 
-             alt="Avatar" class="avatar-img" />
-        <div class="user-details" v-show="!isCollapsed">
-          <span class="user-name text-truncate">{{ authStore.user?.hoTen || 'Nhân viên WindFit' }}</span>
-          <span class="badge" :class="authStore.isAdmin ? 'bg-danger' : 'bg-primary'">
-            {{ authStore.isAdmin ? 'QUẢN TRỊ VIÊN' : 'NHÂN VIÊN' }}
-          </span>
-        </div>
-        <button class="logout-btn ms-auto" @click="handleLogout" title="Đăng xuất" v-show="!isCollapsed">
-          <i class="bi bi-box-arrow-right"></i>
-        </button>
-      </div>
-    </div>
+        <!-- 2. Quản Lý Hóa Đơn (Accordion) -->
+        <li class="nav-row nav-accordion" :class="{ 'is-open': openMenus.hoaDon }">
+          <div class="nav-item-link accordion-header" @click="toggleMenu('hoaDon')">
+            <span class="item-icon-box text-indigo">
+              <i class="fa-solid fa-receipt"></i>
+            </span>
+            <span class="item-label" v-show="!isCollapsed">Quản Lý Hóa Đơn</span>
+            <span class="chevron-arrow" v-show="!isCollapsed">
+              <i class="fa-solid" :class="openMenus.hoaDon ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+            </span>
+          </div>
 
-    <!-- Confirm Logout Dialog -->
-    <ConfirmDialog
-      v-model="showLogoutConfirm"
-      title="Đăng xuất tài khoản"
-      message="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống WindFit?"
-      type="danger"
-      confirmText="Đăng xuất"
-      cancelText="Ở lại"
-      @confirm="executeLogout"
-    />
+          <transition name="slide-sub">
+            <ul class="sub-nav-list" v-show="openMenus.hoaDon && !isCollapsed">
+              <li>
+                <router-link to="/admin/hoa-don" class="sub-nav-link" active-class="sub-active">
+                  <i class="fa-regular fa-file-lines sub-icon"></i>
+                  <span>Danh sách hóa đơn</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/admin/hoa-don/lich-su" class="sub-nav-link" active-class="sub-active">
+                  <i class="fa-solid fa-clock-rotate-left sub-icon"></i>
+                  <span>Lịch sử đơn hàng</span>
+                </router-link>
+              </li>
+            </ul>
+          </transition>
+        </li>
+
+        <!-- 3. BÁN HÀNG TẠI QUẦY (Green Highlight) -->
+        <li class="nav-row">
+          <router-link to="/admin/pos" class="nav-item-link pos-green-link" active-class="active">
+            <span class="item-icon-box text-emerald">
+              <i class="fa-solid fa-cart-shopping"></i>
+            </span>
+            <span class="item-label green-label fw-bold" v-show="!isCollapsed">BÁN HÀNG TẠI QUẦY</span>
+          </router-link>
+        </li>
+
+        <!-- 4. Quản Lý Sản phẩm (Accordion) -->
+        <li class="nav-row nav-accordion" :class="{ 'is-open': openMenus.sanPham }">
+          <div class="nav-item-link accordion-header" @click="toggleMenu('sanPham')">
+            <span class="item-icon-box text-amber">
+              <i class="fa-solid fa-box-archive"></i>
+            </span>
+            <span class="item-label" v-show="!isCollapsed">Quản Lý Sản phẩm</span>
+            <span class="chevron-arrow" v-show="!isCollapsed">
+              <i class="fa-solid" :class="openMenus.sanPham ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+            </span>
+          </div>
+
+          <transition name="slide-sub">
+            <ul class="sub-nav-list" v-show="openMenus.sanPham && !isCollapsed">
+              <li>
+                <router-link to="/admin/san-pham" class="sub-nav-link" active-class="sub-active">
+                  <i class="fa-solid fa-vest sub-icon"></i>
+                  <span>Sản phẩm (Áo khoác gió)</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/admin/thuoc-tinh" class="sub-nav-link" active-class="sub-active">
+                  <i class="fa-solid fa-tags sub-icon"></i>
+                  <span>Thuộc tính sản phẩm</span>
+                </router-link>
+              </li>
+            </ul>
+          </transition>
+        </li>
+
+        <!-- 5. Quản Lý Tài Khoản (Accordion) -->
+        <li class="nav-row nav-accordion" :class="{ 'is-open': openMenus.taiKhoan }">
+          <div class="nav-item-link accordion-header" @click="toggleMenu('taiKhoan')">
+            <span class="item-icon-box text-cyan">
+              <i class="fa-solid fa-user-group"></i>
+            </span>
+            <span class="item-label" v-show="!isCollapsed">Quản Lý Tài Khoản</span>
+            <span class="chevron-arrow" v-show="!isCollapsed">
+              <i class="fa-solid" :class="openMenus.taiKhoan ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+            </span>
+          </div>
+
+          <transition name="slide-sub">
+            <ul class="sub-nav-list" v-show="openMenus.taiKhoan && !isCollapsed">
+              <li>
+                <router-link to="/admin/nhan-vien" class="sub-nav-link" active-class="sub-active">
+                  <i class="fa-solid fa-user-shield sub-icon"></i>
+                  <span>Nhân viên</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/admin/khach-hang" class="sub-nav-link" active-class="sub-active">
+                  <i class="fa-solid fa-users sub-icon"></i>
+                  <span>Khách hàng</span>
+                </router-link>
+              </li>
+            </ul>
+          </transition>
+        </li>
+
+        <!-- 6. Quản Lý Khuyến Mãi (Accordion) -->
+        <li class="nav-row nav-accordion" :class="{ 'is-open': openMenus.khuyenMai }">
+          <div class="nav-item-link accordion-header" @click="toggleMenu('khuyenMai')">
+            <span class="item-icon-box text-pink">
+              <i class="fa-solid fa-tag"></i>
+            </span>
+            <span class="item-label" v-show="!isCollapsed">Quản Lý Khuyến Mãi</span>
+            <span class="chevron-arrow" v-show="!isCollapsed">
+              <i class="fa-solid" :class="openMenus.khuyenMai ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+            </span>
+          </div>
+
+          <transition name="slide-sub">
+            <ul class="sub-nav-list" v-show="openMenus.khuyenMai && !isCollapsed">
+              <li>
+                <router-link to="/admin/phieu-giam-gia" class="sub-nav-link" active-class="sub-active">
+                  <i class="fa-solid fa-ticket sub-icon"></i>
+                  <span>Phiếu giảm giá</span>
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/admin/dot-giam-gia" class="sub-nav-link" active-class="sub-active">
+                  <i class="fa-solid fa-percent sub-icon"></i>
+                  <span>Đợt giảm giá</span>
+                </router-link>
+              </li>
+            </ul>
+          </transition>
+        </li>
+      </ul>
+    </div>
   </aside>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../../stores/auth'
-import ConfirmDialog from '../common/ConfirmDialog.vue'
+import { reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-const authStore = useAuthStore()
-const router = useRouter()
-const isCollapsed = ref(false)
-const showLogoutConfirm = ref(false)
+const props = defineProps({
+  isCollapsed: {
+    type: Boolean,
+    default: false
+  }
+})
 
-function toggleSidebar() {
-  isCollapsed.value = !isCollapsed.value
+const route = useRoute()
+
+const openMenus = reactive({
+  hoaDon: true,
+  sanPham: false,
+  taiKhoan: false,
+  khuyenMai: false
+})
+
+function toggleMenu(menu) {
+  openMenus[menu] = !openMenus[menu]
 }
 
-function handleLogout() {
-  showLogoutConfirm.value = true
-}
-
-function executeLogout() {
-  authStore.logout()
-  router.push('/login')
-}
+// Auto open accordion depending on route
+watch(() => route.path, (newPath) => {
+  if (newPath.includes('/admin/hoa-don')) {
+    openMenus.hoaDon = true
+  } else if (newPath.includes('/admin/san-pham') || newPath.includes('/admin/thuoc-tinh')) {
+    openMenus.sanPham = true
+  } else if (newPath.includes('/admin/nhan-vien') || newPath.includes('/admin/khach-hang')) {
+    openMenus.taiKhoan = true
+  } else if (newPath.includes('/admin/phieu-giam-gia') || newPath.includes('/admin/dot-giam-gia')) {
+    openMenus.khuyenMai = true
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>
-.windfit-sidebar {
-  width: 280px;
+.windfit-sidebar-clean {
+  width: 250px;
   height: 100vh;
   position: fixed;
   left: 0;
   top: 0;
-  background: linear-gradient(180deg, #091224 0%, #0d1b38 100%);
-  color: #e2e8f0;
+  background: #ffffff;
+  border-right: 1px solid #f1f5f9;
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
-  z-index: 1040;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 1020;
+  transition: width 0.25s ease;
+  user-select: none;
 }
 
-.windfit-sidebar.collapsed {
-  width: 80px;
+.windfit-sidebar-clean.collapsed {
+  width: 78px;
 }
 
-.sidebar-header {
-  height: 72px;
+/* Brand Header */
+.sidebar-brand-box {
+  padding: 24px 16px 20px;
+  text-align: center;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.brand-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.brand-link {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
   text-decoration: none;
-  color: #fff;
 }
 
-.brand-logo-wrap {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+.brand-logo-circle {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+  margin-bottom: 10px;
+  transition: transform 0.2s;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
-.brand-icon {
-  font-size: 1.5rem;
-  color: #ffffff;
+.brand-logo-circle:hover {
+  transform: scale(1.05);
 }
 
-.brand-details {
+.brand-png-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.brand-text-block {
   display: flex;
   flex-direction: column;
-}
-
-.brand-name {
-  font-weight: 800;
-  font-size: 1.25rem;
-  letter-spacing: 1px;
-  background: linear-gradient(90deg, #38bdf8, #818cf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.brand-sub {
-  font-size: 0.65rem;
-  letter-spacing: 1.5px;
-  color: #94a3b8;
-  font-weight: 600;
-}
-
-.toggle-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
-.toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+.brand-main-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 1.5px;
+  margin: 0;
+  line-height: 1.2;
 }
 
-.sidebar-menu-wrapper {
+.brand-sub-title {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 1.8px;
+  margin-top: 3px;
+}
+
+/* Navigation List */
+.sidebar-nav-container {
   flex: 1;
   overflow-y: auto;
-  padding: 1.25rem 0.85rem;
+  padding: 16px 14px;
 }
 
-.menu-section {
-  margin-bottom: 1.25rem;
-}
-
-.section-title {
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #64748b;
-  letter-spacing: 1.2px;
-  padding: 0 0.85rem 0.5rem;
-  text-transform: uppercase;
-}
-
-.nav-list {
+.nav-tree {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 6px;
 }
 
-.nav-link-item {
+.nav-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-item-link {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  padding: 0.65rem 0.85rem;
-  color: #94a3b8;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: #334155;
   text-decoration: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  white-space: nowrap;
-}
-
-.nav-link-item:hover {
-  color: #f8fafc;
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateX(3px);
-}
-
-.nav-link-item.active {
-  color: #ffffff;
-  background: linear-gradient(90deg, rgba(14, 165, 233, 0.2) 0%, rgba(14, 165, 233, 0.05) 100%);
-  border-left: 3px solid #0ea5e9;
+  font-size: 0.92rem;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
 }
 
-.nav-icon {
-  font-size: 1.2rem;
-  min-width: 24px;
+.nav-item-link:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.nav-item-link.active {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+/* Item Icons */
+.item-icon-box {
+  width: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
 }
 
-.pos-highlight {
-  background: rgba(245, 158, 11, 0.1);
-  color: #fbbf24;
+.text-blue { color: #3b82f6; }
+.text-indigo { color: #6366f1; }
+.text-emerald { color: #10b981; }
+.text-amber { color: #f59e0b; }
+.text-cyan { color: #06b6d4; }
+.text-pink { color: #ec4899; }
+
+.item-label {
+  flex: 1;
+  white-space: nowrap;
 }
 
-.pos-highlight:hover {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fef3c7;
+.green-label {
+  color: #10b981 !important;
+  font-size: 0.88rem;
 }
 
-.sidebar-user-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.2);
+.chevron-arrow {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  transition: transform 0.2s ease;
 }
 
-.user-info-card {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.avatar-img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #0ea5e9;
-}
-
-.user-details {
+/* Submenu items */
+.sub-nav-list {
+  list-style: none;
+  padding: 4px 0 6px 12px;
+  margin: 2px 0 0;
   display: flex;
   flex-direction: column;
+  gap: 4px;
+}
+
+.sub-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.sub-nav-link:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.sub-nav-link.sub-active {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+  border-left: 3px solid #2563eb;
+  border-radius: 4px 10px 10px 4px;
+}
+
+.sub-icon {
+  font-size: 0.9rem;
+}
+
+/* Animations */
+.slide-sub-enter-active,
+.slide-sub-leave-active {
+  transition: max-height 0.25s ease, opacity 0.2s ease;
   overflow: hidden;
 }
 
-.user-name {
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: #f1f5f9;
+.slide-sub-enter-from,
+.slide-sub-leave-to {
+  max-height: 0;
+  opacity: 0;
 }
 
-.logout-btn {
-  background: transparent;
-  border: none;
-  color: #ef4444;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.35rem;
-  border-radius: 6px;
-  transition: all 0.2s;
+.slide-sub-enter-to,
+.slide-sub-leave-from {
+  max-height: 160px;
+  opacity: 1;
 }
 
-.logout-btn:hover {
-  background: rgba(239, 68, 68, 0.15);
-}
-
-/* Scrollbar tùy chỉnh */
+/* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
+  width: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background-color: #e2e8f0;
   border-radius: 4px;
 }
 </style>

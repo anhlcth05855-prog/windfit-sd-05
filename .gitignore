@@ -24,8 +24,6 @@ yarn-debug.log*
 # IDE & OS settings
 .vscode/
 .idea/
-*.iml
-out/
 .DS_Store
 Thumbs.db
 

@@ -63,7 +63,7 @@ export const attributeService = {
     return api.put(`/thuoc-tinh/${type}/${id}`, data)
   },
   toggleStatus(type, id) {
-    return api.patch(`/thuoc-tinh/${type}/${id}/toggle-status`)
+    return api.delete(`/thuoc-tinh/${type}/${id}`)
   }
 }
 
@@ -122,15 +122,6 @@ export const discountService = {
   getAvailableVouchers() {
     return api.get('/phieu-giam-gia/available')
   },
-  getCustomers(params = {}) {
-    return api.get('/phieu-giam-gia/customers', { params })
-  },
-  getAssignedCustomers(id) {
-    return api.get(`/phieu-giam-gia/${id}/assigned-customers`)
-  },
-  assignCustomers(id, customerIds) {
-    return api.post(`/phieu-giam-gia/${id}/assign-customers`, customerIds)
-  },
   getCampaigns(params = {}) {
     return api.get('/dot-giam-gia', { params })
   },
@@ -145,10 +136,44 @@ export const discountService = {
   },
   toggleCampaignStatus(id) {
     return api.patch(`/dot-giam-gia/${id}/toggle-status`)
+  }
+}
+
+export const customerService = {
+  getAll(params = {}) {
+    return api.get('/khach-hang', { params })
   },
-  getSanPhamChiTiet(params = {}) {
-    return api.get('/dot-giam-gia/san-pham-chi-tiet', { params })
+  getById(id) {
+    return api.get(`/khach-hang/${id}`)
+  },
+  create(data) {
+    return api.post('/khach-hang', data)
+  },
+  update(id, data) {
+    return api.put(`/khach-hang/${id}`, data)
+  },
+  toggleStatus(id) {
+    return api.patch(`/khach-hang/${id}/toggle-status`)
+  }
+}
+
+export const employeeService = {
+  getAll(params = {}) {
+    return api.get('/nhan-vien', { params })
+  },
+  getById(id) {
+    return api.get(`/nhan-vien/${id}`)
+  },
+  create(data) {
+    return api.post('/nhan-vien', data)
+  },
+  update(id, data) {
+    return api.put(`/nhan-vien/${id}`, data)
+  },
+  toggleStatus(id) {
+    return api.patch(`/nhan-vien/${id}/toggle-status`)
   }
 }
 
 export default api
+

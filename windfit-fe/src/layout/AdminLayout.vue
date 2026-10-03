@@ -1,273 +1,362 @@
 <template>
-  <div class="admin-layout-wrapper">
-    <!-- Toast Container for system notifications -->
-    <ToastContainer />
-
+  <div class="admin-shell-wrapper">
     <!-- Sidebar -->
-    <TheSidebar />
+    <TheSidebar :isCollapsed="isSidebarCollapsed" />
 
-    <!-- Main Content Container -->
-    <div class="admin-main-container">
-      <!-- Header (inlined) -->
-      <header class="windfit-header no-print">
-        <div class="header-left">
-          <div class="breadcrumb-wrap">
-            <span class="breadcrumb-item-lead text-muted">
-              <i class="bi bi-tag-fill me-1 text-primary"></i> Phân Hệ
-            </span>
-            <i class="bi bi-chevron-right breadcrumb-separator"></i>
-            <span class="breadcrumb-item-current fw-bold text-dark">
-              {{ pageTitle }}
-            </span>
-          </div>
+    <!-- Main Content Area -->
+    <div class="admin-main-viewport" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
+      <!-- Top Navbar Matching Design -->
+      <header class="windfit-top-header">
+        <div class="header-left-side">
+          <!-- Toggle Hamburger Button [≡] -->
+          <button class="menu-toggle-btn" @click="toggleSidebar" title="Thu gọn / Mở rộng Sidebar">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+
+          <!-- Dynamic Page Title (All Caps) -->
+          <h1 class="header-page-title">{{ currentDisplayTitle }}</h1>
         </div>
 
-        <div class="header-right">
-          <div class="status-pill d-none d-md-flex">
-            <span class="pulse-dot"></span>
-            <span class="status-text">Hệ Thống Sẵn Sàng</span>
-          </div>
-
-          <router-link to="/admin/phieu-giam-gia" class="btn btn-outline-primary btn-sm fw-bold d-flex align-items-center gap-1 shadow-sm px-3">
-            <i class="bi bi-ticket-perforated-fill"></i>
-            <span class="d-none d-sm-inline">Phiếu Giảm Giá</span>
+        <div class="header-right-side">
+          <!-- Button: Cửa hàng Khách hàng -->
+          <router-link to="/admin/pos" class="btn-storefront">
+            <i class="fa-solid fa-store"></i>
+            <span>Cửa hàng Khách hàng</span>
           </router-link>
 
-          <router-link to="/admin/dot-giam-gia" class="btn btn-primary btn-sm fw-bold d-flex align-items-center gap-1 shadow-sm px-3">
-            <i class="bi bi-fire"></i>
-            <span class="d-none d-sm-inline">Đợt Giảm Giá</span>
-          </router-link>
+          <!-- Button: Dark Mode Toggle (Moon) -->
+          <button class="btn-moon-toggle" @click="toggleDarkMode" title="Chế độ tối / sáng">
+            <i class="fa-regular fa-moon"></i>
+          </button>
 
-          <div class="user-dropdown">
-            <img :src="authStore.user?.anhDaiDien || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'"
-                 alt="Avatar" class="header-avatar" />
-            <div class="user-meta d-none d-sm-flex flex-column text-start">
-              <span class="header-user-name fw-bold">{{ authStore.user?.hoTen || 'Admin' }}</span>
-              <span class="header-user-role text-muted small">{{ authStore.isAdmin ? 'Quản Trị Viên' : 'Nhân Viên' }}</span>
+          <!-- User Profile Dropdown Pill -->
+          <div class="user-profile-pill" @click="toggleUserMenu">
+            <div class="user-avatar-circle">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="user-meta-lines">
+              <span class="user-full-name">{{ authStore.user?.hoTen || 'Nguyễn Quản Lý' }}</span>
+              <span class="user-role-badge">
+                <i class="fa-solid fa-crown text-warning me-1"></i>
+                <span>{{ authStore.isAdmin ? 'Quản lý (Admin)' : 'Nhân viên bán hàng' }}</span>
+              </span>
+            </div>
+            <i class="fa-solid fa-chevron-down caret-arrow"></i>
+
+            <!-- Dropdown Menu -->
+            <div class="user-dropdown-menu" v-if="showUserMenu">
+              <div class="dropdown-header">
+                <strong>{{ authStore.user?.email || 'admin@windfit.vn' }}</strong>
+              </div>
+              <router-link to="/admin/nhan-vien" class="dropdown-item-link">
+                <i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân
+              </router-link>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item-btn text-danger" @click="handleLogout">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      <!-- Page Views Injection -->
-      <main class="admin-page-content">
+      <!-- Main Page Content Body -->
+      <main class="page-content-canvas">
         <router-view v-slot="{ Component }">
           <transition name="fade-page" mode="out-in">
             <component :is="Component" />
           </transition>
         </router-view>
       </main>
-
-      <!-- Footer -->
-      <footer class="windfit-footer no-print">
-        <div class="footer-container">
-          <div class="footer-left">
-            <span class="fw-semibold text-dark">WindFit Performance Jackets</span> &copy; 2026.
-            <span class="text-muted d-none d-sm-inline ms-1">Hệ thống Quản trị &amp; Bán hàng Áo khoác gió thể thao.</span>
-          </div>
-          <div class="footer-right">
-            <span class="badge bg-light text-muted border me-2">Phiên bản v1.0.0</span>
-            <span class="text-success small fw-semibold">
-              <i class="bi bi-shield-check"></i> Đồ án tốt nghiệp
-            </span>
-          </div>
-        </div>
-      </footer>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import TheSidebar from '../components/layout/TheSidebar.vue'
-import ToastContainer from '../components/common/ToastContainer.vue'
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 
-const pageTitle = computed(() => {
-  return route.meta?.title || 'Bảng Điều Khiển'
+const isSidebarCollapsed = ref(false)
+const showUserMenu = ref(false)
+
+function toggleSidebar() {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value
+}
+
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode')
+}
+
+function toggleUserMenu() {
+  showUserMenu.value = !showUserMenu.value
+}
+
+function handleLogout() {
+  if (confirm('Bạn có muốn đăng xuất khỏi hệ thống WindFit?')) {
+    authStore.logout()
+    router.push('/login')
+  }
+}
+
+const currentDisplayTitle = computed(() => {
+  const p = route.path
+  if (p.includes('/admin/hoa-don/lich-su')) return 'LỊCH SỬ ĐƠN HÀNG'
+  if (p.includes('/admin/hoa-don')) return 'QUẢN LÝ HÓA ĐƠN'
+  if (p.includes('/admin/nhan-vien')) return 'QUẢN LÝ NHÂN VIÊN'
+  if (p.includes('/admin/khach-hang')) return 'QUẢN LÝ KHÁCH HÀNG'
+  if (p.includes('/admin/phieu-giam-gia')) return 'QUẢN LÝ PHIẾU GIẢM GIÁ'
+  if (p.includes('/admin/dot-giam-gia')) return 'ĐỢT GIẢM GIÁ'
+  if (p.includes('/admin/san-pham')) return 'QUẢN LÝ SẢN PHẨM'
+  if (p.includes('/admin/thuoc-tinh')) return 'THUỘC TÍNH SẢN PHẨM'
+  if (p.includes('/admin/pos')) return 'BÁN HÀNG TẠI QUẦY (POS)'
+  if (p.includes('/admin/dashboard')) return 'TỔNG QUAN HỆ THỐNG'
+  return route.meta?.title?.toUpperCase() || 'QUẢN TRỊ WINDFIT'
 })
 </script>
 
 <style scoped>
-.admin-layout-wrapper {
+.admin-shell-wrapper {
   display: flex;
   min-height: 100vh;
   background-color: #f8fafc;
 }
 
-.admin-main-container {
+.admin-main-viewport {
   flex: 1;
-  margin-left: 280px;
+  margin-left: 250px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: margin-left 0.25s ease;
 }
 
-.admin-page-content {
-  flex: 1;
-  padding: 1.75rem;
+.admin-main-viewport.sidebar-collapsed {
+  margin-left: 78px;
 }
 
-/* Page Transition */
-.fade-page-enter-active,
-.fade-page-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.fade-page-enter-from {
-  opacity: 0;
-  transform: translateY(6px);
-}
-
-.fade-page-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
-}
-
-@media (max-width: 991.98px) {
-  .admin-main-container {
-    margin-left: 0;
-  }
-}
-
-/* Header Styles */
-.windfit-header {
-  height: 72px;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+/* Top Navbar */
+.windfit-top-header {
+  height: 68px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.75rem;
+  padding: 0 28px;
   position: sticky;
   top: 0;
-  z-index: 1030;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  z-index: 1000;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
-.breadcrumb-wrap {
+.header-left-side {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.95rem;
+  gap: 16px;
 }
 
-.breadcrumb-separator {
-  font-size: 0.75rem;
-  color: #94a3b8;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-}
-
-.status-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
-  padding: 0.35rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.pulse-dot {
-  width: 8px;
-  height: 8px;
-  background-color: #10b981;
-  border-radius: 50%;
-  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-  animation: pulse-ring 1.8s infinite;
-}
-
-@keyframes pulse-ring {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-
-.icon-btn {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  width: 38px;
-  height: 38px;
+.menu-toggle-btn {
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
+  border: 1px solid #bfdbfe;
+  background-color: #eff6ff;
+  color: #2563eb;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #475569;
-  position: relative;
+  font-size: 1.05rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.icon-btn:hover {
-  background: #e2e8f0;
-  color: #0ea5e9;
+.menu-toggle-btn:hover {
+  background-color: #dbeafe;
+  color: #1d4ed8;
 }
 
-.badge-count {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  background: #ef4444;
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 700;
-  border-radius: 9999px;
-  padding: 0.15rem 0.4rem;
-  border: 2px solid white;
+.header-page-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+  margin: 0;
+  text-transform: uppercase;
 }
 
-.user-dropdown {
+/* Right Side Actions */
+.header-right-side {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding-left: 0.5rem;
-  border-left: 1px solid #e2e8f0;
+  gap: 14px;
 }
 
-.header-avatar {
-  width: 40px;
-  height: 40px;
+.btn-storefront {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid #bfdbfe;
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-storefront:hover {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.btn-moon-toggle {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #0ea5e9;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.header-user-name {
-  font-size: 0.88rem;
+.btn-moon-toggle:hover {
+  background-color: #f1f5f9;
   color: #0f172a;
 }
 
-.header-user-role {
-  font-size: 0.72rem;
-  margin-top: -2px;
-}
-
-/* Footer Styles */
-.windfit-footer {
-  padding: 1rem 1.75rem;
-  background: #ffffff;
-  border-top: 1px solid #e2e8f0;
-  font-size: 0.82rem;
-}
-
-.footer-container {
+/* User Pill */
+.user-profile-pill {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 10px;
+  padding: 4px 14px 4px 6px;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.user-profile-pill:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.user-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #0f172a;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+.user-meta-lines {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-full-name {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.user-role-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #059669;
+  line-height: 1.2;
+}
+
+.caret-arrow {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.user-dropdown-menu {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 190px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  z-index: 1050;
+}
+
+.dropdown-header {
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  color: #64748b;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 4px;
+}
+
+.dropdown-item-link,
+.dropdown-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dropdown-item-link:hover,
+.dropdown-item-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 4px 0;
+}
+
+/* Page Canvas */
+.page-content-canvas {
+  flex: 1;
+  padding: 24px 28px;
+}
+
+.fade-page-enter-active,
+.fade-page-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.fade-page-enter-from,
+.fade-page-leave-to {
+  opacity: 0;
 }
 </style>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Quản lý nhân viên | WindFit</title>
+    <link rel="stylesheet" th:href="@{/css/nhan-vien.css}">
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand"><img th:src="@{/images/logo.jpeg}" alt="WindFit"><b>WINDFIT</b><small>PERFORMANCE JACKETS</small></div>
+        <nav>
+            <a>▦ <span>Tổng quan</span></a><a>▣ <span>Quản lý Hóa Đơn</span></a><a>🛒 <span>BÁN HÀNG TẠI QUẦY</span></a><a>◇ <span>Quản Lý Sản phẩm</span></a>
+            <div class="group"><a class="parent">♙ <span>Quản Lý Tài Khoản</span><i>⌄</i></a><a class="sub active" th:href="@{/nhan-vien}">♙ Nhân viên</a><a class="sub">♙ Khách hàng</a></div>
+            <a>◇ <span>Quản Lý Khuyến Mãi</span></a>
+        </nav>
+    </aside>
+
+    <main>
+        <header><div class="head-title"><button>☰</button><h2>QUẢN LÝ NHÂN VIÊN</h2></div><div class="account"><span class="avatar">♙</span><div><b>Nguyễn Quản Lý</b><small>👑 Quản lý (Admin)</small></div><span>⌄</span></div></header>
+        <section class="content">
+            <div class="page-title"><h2>♙ QUẢN LÝ NHÂN VIÊN</h2><button class="primary" type="button" onclick="openAdd()">＋ Thêm Nhân Viên</button></div>
+            <div th:if="${success}" class="alert success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert error" th:text="${error}"></div>
+
+            <div class="card">
+                <h3>☷ &nbsp;Bộ Lọc</h3>
+                <form method="get" th:action="@{/nhan-vien}">
+                    <div class="filter-grid">
+                        <input name="keyword" th:value="${keyword}" placeholder="⌕  Tìm theo tên, SĐT hoặc email...">
+                        <select name="phongBan"><option value="">Tất cả phòng ban</option><option th:each="x:${phongBans}" th:value="${x}" th:text="${x}" th:selected="${x==phongBan}"></option></select>
+                        <select name="chucVu"><option value="">Tất cả chức vụ</option><option th:each="x:${chucVus}" th:value="${x}" th:text="${x}" th:selected="${x==chucVu}"></option></select>
+                        <select name="status"><option value="">Tất cả trạng thái</option><option th:each="x:${trangThais}" th:value="${x}" th:text="${x}" th:selected="${x==status}"></option></select>
+                    </div>
+                    <div class="filter-actions"><button class="primary" type="submit">⌕ &nbsp;Tìm kiếm</button><a class="danger" th:href="@{/nhan-vien}">↻ &nbsp;Làm mới</a></div>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><h3>♙ &nbsp;Danh sách nhân viên</h3><button class="circle" type="button" onclick="openAdd()">＋</button></div>
+                <div class="tabs"><a class="active" th:href="@{/nhan-vien}">Tất Cả</a><a th:href="@{/nhan-vien(status='ACTIVE')}">Đang Hoạt Động</a><a th:href="@{/nhan-vien(status='LEAVE')}">Nghỉ Phép</a><a th:href="@{/nhan-vien(status='TERMINATED')}">Nghỉ Việc</a></div>
+                <div class="table-wrap"><table><thead><tr><th>STT</th><th>Họ và tên</th><th>Số điện thoại</th><th>Email</th><th>Chức vụ</th><th>Phòng ban</th><th>Ngày vào làm</th><th>Lương cơ bản</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
+                    <tbody>
+                    <tr th:each="nv,s:${danhSach}">
+                        <td th:text="${s.count}"></td><td class="strong" th:text="${nv.hoTen}"></td><td th:text="${nv.soDienThoai ?: '-'}"></td><td th:text="${nv.email}"></td><td th:text="${nv.chucVu ?: '-'}"></td><td th:text="${nv.phongBan ?: '-'}"></td><td th:text="${nv.ngayVaoLam ?: '-'}"></td><td th:text="${#numbers.formatDecimal(nv.luongCoBan ?: 0,0,'COMMA',0,'POINT')+' ₫'}"></td>
+                        <td><span class="badge" th:classappend="${nv.trangThai.name()=='ACTIVE'}?' green':(${nv.trangThai.name()=='LEAVE'}?' yellow':' red')" th:text="${nv.trangThai}"></span></td>
+                        <td><div class="row-actions">
+                            <button class="edit" type="button" th:data-id="${nv.id}" th:data-name="${nv.hoTen}" th:data-email="${nv.email}" th:data-phone="${nv.soDienThoai}" th:data-position="${nv.chucVu}" th:data-department="${nv.phongBan}" th:data-date="${nv.ngayVaoLam}" th:data-salary="${nv.luongCoBan}" th:data-status="${nv.trangThai}" onclick="openEdit(this)">✎</button>
+                            <form th:action="@{/nhan-vien/{id}/delete(id=${nv.id})}" method="post" onsubmit="return confirm('Chuyển nhân viên này sang trạng thái nghỉ việc?')"><button class="del" type="submit">⌫</button></form>
+                        </div></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(danhSach)}"><td colspan="10" class="empty">Không có nhân viên phù hợp.</td></tr>
+                    </tbody></table></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<div id="modal" class="modal" th:classappend="${openModal} ? ' show' : ''">
+    <div class="modal-box">
+        <div class="modal-head"><div><small>WINDFIT</small><h2 id="modalTitle" th:text="${editMode} ? 'Cập nhật nhân viên' : 'Thêm nhân viên'">Thêm nhân viên</h2></div><button type="button" onclick="closeModal()">×</button></div>
+        <form method="post" th:action="@{/nhan-vien/save}" id="employeeForm" th:object="${nhanVien}">
+            <input type="hidden" th:field="*{id}" id="id">
+            <div class="form-grid">
+                <label>Họ và tên *
+                    <input th:field="*{hoTen}" id="hoTen" maxlength="150" required placeholder="Nhập họ và tên" th:classappend="${#fields.hasErrors('hoTen')} ? ' invalid' : ''">
+                    <span class="field-error" th:errors="*{hoTen}"></span>
+                </label>
+                <label>Email *
+                    <input th:field="*{email}" id="email" type="email" maxlength="150" required placeholder="example@windfit.com" th:classappend="${#fields.hasErrors('email')} ? ' invalid' : ''">
+                    <span class="field-error" th:errors="*{email}"></span>
+                </label>
+                <label>Số điện thoại
+                    <input th:field="*{soDienThoai}" id="soDienThoai" maxlength="10" minlength="10" inputmode="numeric" pattern="(03|05|07|08|09)[0-9]{8}" required placeholder="VD: 0987654321" th:classappend="${#fields.hasErrors('soDienThoai')} ? ' invalid' : ''">
+                    <span class="field-error" th:errors="*{soDienThoai}"></span>
+                </label>
+                <label>Chức vụ
+                    <input th:field="*{chucVu}" id="chucVu" maxlength="100" required placeholder="VD: Nhân viên bán hàng" th:classappend="${#fields.hasErrors('chucVu')} ? ' invalid' : ''">
+                    <span class="field-error" th:errors="*{chucVu}"></span>
+                </label>
+                <label>Phòng ban
+                    <input th:field="*{phongBan}" id="phongBan" maxlength="100" required placeholder="VD: Kinh doanh" th:classappend="${#fields.hasErrors('phongBan')} ? ' invalid' : ''">
+                    <span class="field-error" th:errors="*{phongBan}"></span>
+                </label>
+                <label>Ngày vào làm
+                    <input th:field="*{ngayVaoLam}" id="ngayVaoLam" type="date" required th:classappend="${#fields.hasErrors('ngayVaoLam')} ? ' invalid' : ''">
+                    <span class="field-error" th:errors="*{ngayVaoLam}"></span>
+                </label>
+                <label>Lương cơ bản *
+                    <input th:field="*{luongCoBan}" id="luongCoBan" type="number" min="0" step="0.01" required th:classappend="${#fields.hasErrors('luongCoBan')} ? ' invalid' : ''">
+                    <span class="field-error" th:errors="*{luongCoBan}"></span>
+                </label>
+                <label>Trạng thái *
+                    <select th:field="*{trangThai}" id="trangThai" required th:classappend="${#fields.hasErrors('trangThai')} ? ' invalid' : ''"><option th:each="x:${trangThais}" th:value="${x}" th:text="${x}"></option></select>
+                    <span class="field-error" th:errors="*{trangThai}"></span>
+                </label>
+            </div>
+            <div class="modal-actions"><button type="button" class="secondary" onclick="closeModal()">Hủy</button><button type="submit" class="primary" id="saveButton" th:text="${editMode} ? 'Cập nhật nhân viên' : 'Lưu nhân viên'">Lưu nhân viên</button></div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('modal');
+    const form = document.getElementById('employeeForm');
+    const title = document.getElementById('modalTitle');
+    const saveButton = document.getElementById('saveButton');
+
+    function clearErrors() {
+        document.querySelectorAll('.field-error').forEach(x => x.textContent = '');
+        document.querySelectorAll('.invalid').forEach(x => x.classList.remove('invalid'));
+    }
+    function openAdd() {
+        form.reset(); clearErrors();
+        document.getElementById('id').value = '';
+        document.getElementById('luongCoBan').value = '0';
+        document.getElementById('trangThai').value = 'ACTIVE';
+        title.innerText = 'Thêm nhân viên'; saveButton.innerText = 'Lưu nhân viên';
+        modal.classList.add('show');
+    }
+    function openEdit(b) {
+        form.reset(); clearErrors();
+        document.getElementById('id').value = b.dataset.id || '';
+        document.getElementById('hoTen').value = b.dataset.name || '';
+        document.getElementById('email').value = b.dataset.email || '';
+        document.getElementById('soDienThoai').value = b.dataset.phone || '';
+        document.getElementById('chucVu').value = b.dataset.position || '';
+        document.getElementById('phongBan').value = b.dataset.department || '';
+        document.getElementById('ngayVaoLam').value = b.dataset.date || '';
+        document.getElementById('luongCoBan').value = b.dataset.salary || '0';
+        document.getElementById('trangThai').value = b.dataset.status || 'ACTIVE';
+        title.innerText = 'Cập nhật nhân viên'; saveButton.innerText = 'Cập nhật nhân viên';
+        modal.classList.add('show');
+    }
+    function closeModal() { modal.classList.remove('show'); }
+    window.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>

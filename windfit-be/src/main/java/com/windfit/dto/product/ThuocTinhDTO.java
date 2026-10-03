@@ -18,4 +18,8 @@ public class ThuocTinhDTO {
     private String ten;
     private Integer trangThai;
     private String loaiThuocTinh;
+
+    public String getLabel() {
+        return this.ten;
+    }
 }
