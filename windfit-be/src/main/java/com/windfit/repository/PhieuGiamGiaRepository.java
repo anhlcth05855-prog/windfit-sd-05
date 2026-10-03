@@ -21,11 +21,15 @@ public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia, Long
     @Query("SELECT p FROM PhieuGiamGia p WHERE " +
            "(:keyword IS NULL OR LOWER(p.maPhieuGiamGia) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.tenPhieuGiamGia) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
            "(:loaiGiamGia IS NULL OR p.loaiGiamGia = :loaiGiamGia) AND " +
-           "(:trangThai IS NULL OR p.trangThai = :trangThai)")
+           "(:trangThai IS NULL OR p.trangThai = :trangThai) AND " +
+           "(:tuNgay IS NULL OR p.ngayBatDau >= :tuNgay) AND " +
+           "(:denNgay IS NULL OR p.ngayKetThuc <= :denNgay)")
     Page<PhieuGiamGia> searchPhieuGiamGia(
             @Param("keyword") String keyword,
             @Param("loaiGiamGia") String loaiGiamGia,
             @Param("trangThai") Integer trangThai,
+            @Param("tuNgay") LocalDateTime tuNgay,
+            @Param("denNgay") LocalDateTime denNgay,
             Pageable pageable
     );
 

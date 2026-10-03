@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -19,32 +21,36 @@ import java.time.LocalDateTime;
 public class PhieuGiamGiaRequestDTO {
     private String maPhieuGiamGia;
 
-    @NotBlank(message = "Ten phieu giam gia khong duoc de trong")
+    @NotBlank(message = "Tên phiếu giảm giá không được để trống")
     private String tenPhieuGiamGia;
 
-    @NotBlank(message = "Loai giam gia khong duoc de trong")
+    @NotBlank(message = "Loại giảm giá không được để trống")
     private String loaiGiamGia;
 
-    @NotNull(message = "Gia tri giam khong duoc de trong")
-    @DecimalMin(value = "0.0", inclusive = false)
+    @NotNull(message = "Giá trị giảm không được để trống")
+    @DecimalMin(value = "0.01", message = "Giá trị giảm phải lớn hơn 0")
     private BigDecimal giaTriGiam;
 
     private BigDecimal giamToiDa;
 
-    @NotNull
-    @DecimalMin(value = "0.0")
+    @NotNull(message = "Đơn hàng tối thiểu không được để trống")
+    @DecimalMin(value = "0.0", message = "Đơn tối thiểu không được âm")
     private BigDecimal donToiThieu;
 
-    @NotNull
-    @Min(value = 1)
+    @NotNull(message = "Số lượng không được để trống")
+    @Min(value = 1, message = "Số lượng tối thiểu là 1")
     private Integer soLuong;
 
-    @NotNull
+    @NotNull(message = "Ngày bắt đầu không được để trống")
     private LocalDateTime ngayBatDau;
 
-    @NotNull
+    @NotNull(message = "Ngày kết thúc không được để trống")
     private LocalDateTime ngayKetThuc;
 
     @Builder.Default
     private Integer trangThai = 1;
+
+    // Danh sách id khách hàng được gán voucher riêng tư (tùy chọn)
+    @Builder.Default
+    private List<Long> customerIds = new ArrayList<>();
 }

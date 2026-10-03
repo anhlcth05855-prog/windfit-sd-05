@@ -13,7 +13,7 @@ import java.util.List;
 public interface DotGiamGiaChiTietRepository extends JpaRepository<DotGiamGiaChiTiet, Long> {
     List<DotGiamGiaChiTiet> findByDotGiamGiaId(Long dotGiamGiaId);
 
-    void deleteByDotGiamGiaId(Long dotGiamGiaId);
+    List<DotGiamGiaChiTiet> findByDotGiamGiaIdAndTrangThai(Long dotGiamGiaId, Integer trangThai);
 
     @Query("SELECT c FROM DotGiamGiaChiTiet c WHERE c.sanPhamChiTiet.id = :spctId AND c.trangThai = 1 AND c.dotGiamGia.trangThai = 1 AND :now >= c.dotGiamGia.ngayBatDau AND :now <= c.dotGiamGia.ngayKetThuc ORDER BY c.phanTramGiam DESC")
     List<DotGiamGiaChiTiet> findActiveDiscountsForSpct(@Param("spctId") Long spctId, @Param("now") LocalDateTime now);

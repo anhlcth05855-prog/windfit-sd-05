@@ -1,6 +1,7 @@
 package com.windfit.service;
 
 import com.windfit.dto.discount.*;
+import com.windfit.dto.product.SanPhamChiTietResponseDTO;
 import com.windfit.entity.*;
 import com.windfit.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -18,20 +19,56 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public interface GiamGiaService {
-    Page<PhieuGiamGiaResponseDTO> getPhieuGiamGiaList(String keyword, String loaiGiamGia, Integer trangThai, int page, int size);
+    Page<PhieuGiamGiaResponseDTO> getPhieuGiamGiaList(
+            String keyword,
+            String loaiGiamGia,
+            Integer trangThai,
+            LocalDateTime tuNgay,
+            LocalDateTime denNgay,
+            int page,
+            int size
+    );
+
     PhieuGiamGiaResponseDTO getPhieuGiamGiaById(Long id);
+
     PhieuGiamGiaResponseDTO createPhieuGiamGia(PhieuGiamGiaRequestDTO request);
+
     PhieuGiamGiaResponseDTO updatePhieuGiamGia(Long id, PhieuGiamGiaRequestDTO request);
+
     void toggleStatusPhieuGiamGia(Long id);
+
     ValidateVoucherResponse validateVoucher(ValidateVoucherRequest request);
+
     List<PhieuGiamGiaResponseDTO> getAvailableVouchers();
-    Page<DotGiamGiaResponseDTO> getDotGiamGiaList(String keyword, Integer trangThai, int page, int size);
+
+    Page<DotGiamGiaResponseDTO> getDotGiamGiaList(
+            String keyword,
+            Integer trangThai,
+            LocalDateTime tuNgay,
+            LocalDateTime denNgay,
+            int page,
+            int size
+    );
+
     DotGiamGiaResponseDTO getDotGiamGiaById(Long id);
+
     DotGiamGiaResponseDTO createDotGiamGia(DotGiamGiaRequestDTO request);
+
     DotGiamGiaResponseDTO updateDotGiamGia(Long id, DotGiamGiaRequestDTO request);
+
     void toggleStatusDotGiamGia(Long id);
+
     BigDecimal getActiveDiscountPriceForSpct(Long spctId, BigDecimal originalPrice);
+
     Map<Long, BigDecimal> getActiveDiscountPricesForSpctList(List<Long> spctIds);
+
+    Page<SanPhamChiTietResponseDTO> searchSanPhamChiTiet(String keyword, Long idSanPham, int page, int size);
+
+    Page<KhachHangSimpleDTO> searchKhachHang(String keyword, int page, int size);
+
+    List<Long> getAssignedCustomerIds(Long idVoucher);
+
+    void assignCustomersToVoucher(Long idVoucher, List<Long> customerIds);
 }
 
 @Service
@@ -40,6 +77,7 @@ class GiamGiaServiceImpl implements GiamGiaService {
 
     private final PhieuGiamGiaRepository phieuGiamGiaRepository;
     private final KhachHangPhieuGiamGiaRepository khachHangPhieuGiamGiaRepository;
+    private final KhachHangRepository khachHangRepository;
     private final DotGiamGiaRepository dotGiamGiaRepository;
     private final DotGiamGiaChiTietRepository dotGiamGiaChiTietRepository;
     private final SanPhamChiTietRepository sanPhamChiTietRepository;
@@ -50,6 +88,8 @@ class GiamGiaServiceImpl implements GiamGiaService {
             String keyword,
             String loaiGiamGia,
             Integer trangThai,
+            LocalDateTime tuNgay,
+            LocalDateTime denNgay,
             int page,
             int size
     ) {
@@ -57,7 +97,7 @@ class GiamGiaServiceImpl implements GiamGiaService {
         String cleanKw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
         String cleanType = (loaiGiamGia != null && !loaiGiamGia.trim().isEmpty()) ? loaiGiamGia.trim() : null;
 
-        Page<PhieuGiamGia> resultPage = phieuGiamGiaRepository.searchPhieuGiamGia(cleanKw, cleanType, trangThai, pageable);
+        Page<PhieuGiamGia> resultPage = phieuGiamGiaRepository.searchPhieuGiamGia(cleanKw, cleanType, trangThai, tuNgay, denNgay, pageable);
         return resultPage.map(this::mapVoucherToDTO);
     }
 
@@ -65,7 +105,7 @@ class GiamGiaServiceImpl implements GiamGiaService {
     @Transactional(readOnly = true)
     public PhieuGiamGiaResponseDTO getPhieuGiamGiaById(Long id) {
         PhieuGiamGia p = phieuGiamGiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu giảm giá ID: " + id));
         return mapVoucherToDTO(p);
     }
 
@@ -78,12 +118,18 @@ class GiamGiaServiceImpl implements GiamGiaService {
         } else {
             code = code.trim().toUpperCase();
             if (phieuGiamGiaRepository.existsByMaPhieuGiamGia(code)) {
-                throw new RuntimeException("Mã phiếu giảm giá '" + code + "' đã tồn tại!");
+                throw new IllegalArgumentException("Mã phiếu giảm giá '" + code + "' đã tồn tại trong hệ thống!");
             }
         }
 
         if (request.getNgayKetThuc().isBefore(request.getNgayBatDau())) {
-            throw new RuntimeException("Ngày kết thúc phải diễn ra sau ngày bắt đầu!");
+            throw new IllegalArgumentException("Ngày kết thúc phải diễn ra sau ngày bắt đầu!");
+        }
+
+        if ("PHAN_TRAM".equalsIgnoreCase(request.getLoaiGiamGia())) {
+            if (request.getGiaTriGiam().compareTo(BigDecimal.valueOf(100)) > 0) {
+                throw new IllegalArgumentException("Phần trăm giảm giá không được vượt quá 100%!");
+            }
         }
 
         PhieuGiamGia p = PhieuGiamGia.builder()
@@ -102,6 +148,11 @@ class GiamGiaServiceImpl implements GiamGiaService {
                 .build();
 
         p = phieuGiamGiaRepository.save(p);
+
+        if (request.getCustomerIds() != null && !request.getCustomerIds().isEmpty()) {
+            assignCustomersToVoucher(p.getId(), request.getCustomerIds());
+        }
+
         return mapVoucherToDTO(p);
     }
 
@@ -109,10 +160,24 @@ class GiamGiaServiceImpl implements GiamGiaService {
     @Transactional
     public PhieuGiamGiaResponseDTO updatePhieuGiamGia(Long id, PhieuGiamGiaRequestDTO request) {
         PhieuGiamGia p = phieuGiamGiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu giảm giá ID: " + id));
+
+        if (request.getMaPhieuGiamGia() != null && !request.getMaPhieuGiamGia().trim().equalsIgnoreCase(p.getMaPhieuGiamGia())) {
+            String newCode = request.getMaPhieuGiamGia().trim().toUpperCase();
+            if (phieuGiamGiaRepository.existsByMaPhieuGiamGia(newCode)) {
+                throw new IllegalArgumentException("Mã phiếu giảm giá '" + newCode + "' đã tồn tại!");
+            }
+            p.setMaPhieuGiamGia(newCode);
+        }
 
         if (request.getNgayKetThuc().isBefore(request.getNgayBatDau())) {
-            throw new RuntimeException("Ngày kết thúc phải diễn ra sau ngày bắt đầu!");
+            throw new IllegalArgumentException("Ngày kết thúc phải diễn ra sau ngày bắt đầu!");
+        }
+
+        if ("PHAN_TRAM".equalsIgnoreCase(request.getLoaiGiamGia())) {
+            if (request.getGiaTriGiam().compareTo(BigDecimal.valueOf(100)) > 0) {
+                throw new IllegalArgumentException("Phần trăm giảm giá không được vượt quá 100%!");
+            }
         }
 
         p.setTenPhieuGiamGia(request.getTenPhieuGiamGia().trim());
@@ -126,6 +191,11 @@ class GiamGiaServiceImpl implements GiamGiaService {
         if (request.getTrangThai() != null) p.setTrangThai(request.getTrangThai());
 
         p = phieuGiamGiaRepository.save(p);
+
+        if (request.getCustomerIds() != null) {
+            assignCustomersToVoucher(p.getId(), request.getCustomerIds());
+        }
+
         return mapVoucherToDTO(p);
     }
 
@@ -133,7 +203,7 @@ class GiamGiaServiceImpl implements GiamGiaService {
     @Transactional
     public void toggleStatusPhieuGiamGia(Long id) {
         PhieuGiamGia p = phieuGiamGiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu giảm giá ID: " + id));
         p.setTrangThai((p.getTrangThai() == null || p.getTrangThai() == 1) ? 0 : 1);
         phieuGiamGiaRepository.save(p);
     }
@@ -141,29 +211,34 @@ class GiamGiaServiceImpl implements GiamGiaService {
     @Override
     @Transactional(readOnly = true)
     public ValidateVoucherResponse validateVoucher(ValidateVoucherRequest request) {
-        String code = request.getMaVoucher().trim();
-        Optional<PhieuGiamGia> opt = phieuGiamGiaRepository.findByMaPhieuGiamGia(code);
-
-        if (opt.isEmpty()) {
+        if (request.getMaVoucher() == null || request.getMaVoucher().trim().isEmpty()) {
             return ValidateVoucherResponse.builder()
                     .valid(false)
-                    .message("Mã voucher '" + code + "' không tồn tại!")
+                    .message("Mã voucher không được để trống!")
                     .build();
         }
 
-        PhieuGiamGia pgg = opt.get();
-        LocalDateTime now = LocalDateTime.now();
-
-        if (pgg.getTrangThai() == 0) {
+        Optional<PhieuGiamGia> pOpt = phieuGiamGiaRepository.findByMaPhieuGiamGia(request.getMaVoucher().trim().toUpperCase());
+        if (pOpt.isEmpty()) {
             return ValidateVoucherResponse.builder()
                     .valid(false)
-                    .message("Mã voucher '" + code + "' đã bị tạm khóa!")
+                    .message("Mã voucher '" + request.getMaVoucher() + "' không tồn tại!")
+                    .build();
+        }
+
+        PhieuGiamGia pgg = pOpt.get();
+        LocalDateTime now = LocalDateTime.now();
+
+        if (pgg.getTrangThai() == null || pgg.getTrangThai() == 0) {
+            return ValidateVoucherResponse.builder()
+                    .valid(false)
+                    .message("Voucher này đang tạm khóa hoặc đã ngưng áp dụng!")
                     .build();
         }
         if (now.isBefore(pgg.getNgayBatDau())) {
             return ValidateVoucherResponse.builder()
                     .valid(false)
-                    .message("Voucher chưa tới thời gian áp dụng!")
+                    .message("Voucher chưa đến ngày bắt đầu sử dụng!")
                     .build();
         }
         if (now.isAfter(pgg.getNgayKetThuc())) {
@@ -237,11 +312,18 @@ class GiamGiaServiceImpl implements GiamGiaService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<DotGiamGiaResponseDTO> getDotGiamGiaList(String keyword, Integer trangThai, int page, int size) {
+    public Page<DotGiamGiaResponseDTO> getDotGiamGiaList(
+            String keyword,
+            Integer trangThai,
+            LocalDateTime tuNgay,
+            LocalDateTime denNgay,
+            int page,
+            int size
+    ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         String cleanKw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
 
-        Page<DotGiamGia> resultPage = dotGiamGiaRepository.searchDotGiamGia(cleanKw, trangThai, pageable);
+        Page<DotGiamGia> resultPage = dotGiamGiaRepository.searchDotGiamGia(cleanKw, trangThai, tuNgay, denNgay, pageable);
         return resultPage.map(this::mapCampaignToDTO);
     }
 
@@ -249,7 +331,7 @@ class GiamGiaServiceImpl implements GiamGiaService {
     @Transactional(readOnly = true)
     public DotGiamGiaResponseDTO getDotGiamGiaById(Long id) {
         DotGiamGia d = dotGiamGiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đợt giảm giá ID: " + id));
         return mapCampaignToDTO(d);
     }
 
@@ -262,12 +344,12 @@ class GiamGiaServiceImpl implements GiamGiaService {
         } else {
             code = code.trim().toUpperCase();
             if (dotGiamGiaRepository.existsByMaDotGiamGia(code)) {
-                throw new RuntimeException("Mã đợt giảm giá '" + code + "' đã tồn tại!");
+                throw new IllegalArgumentException("Mã đợt giảm giá '" + code + "' đã tồn tại trong hệ thống!");
             }
         }
 
         if (request.getNgayKetThuc().isBefore(request.getNgayBatDau())) {
-            throw new RuntimeException("Ngày kết thúc phải diễn ra sau ngày bắt đầu!");
+            throw new IllegalArgumentException("Ngày kết thúc phải diễn ra sau ngày bắt đầu!");
         }
 
         DotGiamGia d = DotGiamGia.builder()
@@ -285,7 +367,7 @@ class GiamGiaServiceImpl implements GiamGiaService {
         if (request.getDanhSachChiTiet() != null) {
             for (DotGiamGiaItemRequestDTO item : request.getDanhSachChiTiet()) {
                 SanPhamChiTiet spct = sanPhamChiTietRepository.findById(item.getIdSanPhamChiTiet())
-                        .orElseThrow(() -> new RuntimeException("Biến thể áo khoác không tồn tại ID: " + item.getIdSanPhamChiTiet()));
+                        .orElseThrow(() -> new IllegalArgumentException("Biến thể áo khoác không tồn tại ID: " + item.getIdSanPhamChiTiet()));
 
                 BigDecimal phanTram = item.getPhanTramGiam();
                 BigDecimal discountMultiplier = BigDecimal.valueOf(100).subtract(phanTram).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
@@ -311,10 +393,18 @@ class GiamGiaServiceImpl implements GiamGiaService {
     @Transactional
     public DotGiamGiaResponseDTO updateDotGiamGia(Long id, DotGiamGiaRequestDTO request) {
         DotGiamGia d = dotGiamGiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đợt giảm giá ID: " + id));
+
+        if (request.getMaDotGiamGia() != null && !request.getMaDotGiamGia().trim().equalsIgnoreCase(d.getMaDotGiamGia())) {
+            String newCode = request.getMaDotGiamGia().trim().toUpperCase();
+            if (dotGiamGiaRepository.existsByMaDotGiamGia(newCode)) {
+                throw new IllegalArgumentException("Mã đợt giảm giá '" + newCode + "' đã tồn tại!");
+            }
+            d.setMaDotGiamGia(newCode);
+        }
 
         if (request.getNgayKetThuc().isBefore(request.getNgayBatDau())) {
-            throw new RuntimeException("Ngày kết thúc phải diễn ra sau ngày bắt đầu!");
+            throw new IllegalArgumentException("Ngày kết thúc phải diễn ra sau ngày bắt đầu!");
         }
 
         d.setTenDotGiamGia(request.getTenDotGiamGia().trim());
@@ -326,26 +416,45 @@ class GiamGiaServiceImpl implements GiamGiaService {
 
         d = dotGiamGiaRepository.save(d);
 
+        // Soft-update child details: No hard delete!
+        List<DotGiamGiaChiTiet> existingDetails = dotGiamGiaChiTietRepository.findByDotGiamGiaId(d.getId());
+        for (DotGiamGiaChiTiet detail : existingDetails) {
+            detail.setTrangThai(0);
+            dotGiamGiaChiTietRepository.save(detail);
+        }
+
         if (request.getDanhSachChiTiet() != null) {
-            dotGiamGiaChiTietRepository.deleteByDotGiamGiaId(d.getId());
             for (DotGiamGiaItemRequestDTO item : request.getDanhSachChiTiet()) {
                 SanPhamChiTiet spct = sanPhamChiTietRepository.findById(item.getIdSanPhamChiTiet())
-                        .orElseThrow(() -> new RuntimeException("Biến thể áo khoác không tồn tại ID: " + item.getIdSanPhamChiTiet()));
+                        .orElseThrow(() -> new IllegalArgumentException("Biến thể áo khoác không tồn tại ID: " + item.getIdSanPhamChiTiet()));
 
                 BigDecimal phanTram = item.getPhanTramGiam();
                 BigDecimal discountMultiplier = BigDecimal.valueOf(100).subtract(phanTram).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
                 BigDecimal giaSauGiam = spct.getGiaBan().multiply(discountMultiplier).setScale(0, RoundingMode.HALF_UP);
 
-                DotGiamGiaChiTiet detail = DotGiamGiaChiTiet.builder()
-                        .dotGiamGia(d)
-                        .sanPhamChiTiet(spct)
-                        .soLuong(item.getSoLuong())
-                        .phanTramGiam(phanTram)
-                        .giaSauGiam(giaSauGiam)
-                        .trangThai(1)
-                        .build();
+                // Check if existing record exists for this spct in this campaign
+                Optional<DotGiamGiaChiTiet> matched = existingDetails.stream()
+                        .filter(ed -> ed.getSanPhamChiTiet().getId().equals(spct.getId()))
+                        .findFirst();
 
-                dotGiamGiaChiTietRepository.save(detail);
+                if (matched.isPresent()) {
+                    DotGiamGiaChiTiet detail = matched.get();
+                    detail.setSoLuong(item.getSoLuong());
+                    detail.setPhanTramGiam(phanTram);
+                    detail.setGiaSauGiam(giaSauGiam);
+                    detail.setTrangThai(1);
+                    dotGiamGiaChiTietRepository.save(detail);
+                } else {
+                    DotGiamGiaChiTiet newDetail = DotGiamGiaChiTiet.builder()
+                            .dotGiamGia(d)
+                            .sanPhamChiTiet(spct)
+                            .soLuong(item.getSoLuong())
+                            .phanTramGiam(phanTram)
+                            .giaSauGiam(giaSauGiam)
+                            .trangThai(1)
+                            .build();
+                    dotGiamGiaChiTietRepository.save(newDetail);
+                }
             }
         }
 
@@ -356,7 +465,7 @@ class GiamGiaServiceImpl implements GiamGiaService {
     @Transactional
     public void toggleStatusDotGiamGia(Long id) {
         DotGiamGia d = dotGiamGiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đợt giảm giá ID: " + id));
         int newStatus = (d.getTrangThai() == null || d.getTrangThai() == 1) ? 0 : 1;
         d.setTrangThai(newStatus);
         dotGiamGiaRepository.save(d);
@@ -385,6 +494,95 @@ class GiamGiaServiceImpl implements GiamGiaService {
             }
         }
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SanPhamChiTietResponseDTO> searchSanPhamChiTiet(String keyword, Long idSanPham, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        String cleanKw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
+
+        Page<SanPhamChiTiet> pageResult = sanPhamChiTietRepository.searchSanPhamChiTiet(cleanKw, idSanPham, 1, pageable);
+        return pageResult.map(s -> SanPhamChiTietResponseDTO.builder()
+                .id(s.getId())
+                .idSanPham(s.getSanPham() != null ? s.getSanPham().getId() : null)
+                .tenSanPham(s.getSanPham() != null ? s.getSanPham().getTenSanPham() : "")
+                .maSpct(s.getMaSpct())
+                .maVach(s.getMaVach())
+                .idMauSac(s.getMauSac() != null ? s.getMauSac().getId() : null)
+                .tenMauSac(s.getMauSac() != null ? s.getMauSac().getTenMau() : "")
+                .idKichCo(s.getKichCo() != null ? s.getKichCo().getId() : null)
+                .tenKichCo(s.getKichCo() != null ? s.getKichCo().getTenKichCo() : "")
+                .giaBan(s.getGiaBan())
+                .soLuongTon(s.getSoLuongTon())
+                .trangThai(s.getTrangThai())
+                .ngayTao(s.getNgayTao())
+                .ngaySua(s.getNgaySua())
+                .build());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<KhachHangSimpleDTO> searchKhachHang(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        String cleanKw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
+
+        Page<KhachHang> pageResult = khachHangRepository.searchKhachHang(cleanKw, 1, pageable);
+        return pageResult.map(k -> KhachHangSimpleDTO.builder()
+                .id(k.getId())
+                .maKhachHang(k.getMaKhachHang())
+                .hoTen(k.getHoTen())
+                .soDienThoai(k.getSoDienThoai())
+                .email(k.getEmail())
+                .trangThai(k.getTrangThai())
+                .build());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> getAssignedCustomerIds(Long idVoucher) {
+        return khachHangPhieuGiamGiaRepository.findByPhieuGiamGiaId(idVoucher).stream()
+                .filter(item -> item.getTrangThai() != null && item.getTrangThai() == 1)
+                .map(item -> item.getKhachHang().getId())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void assignCustomersToVoucher(Long idVoucher, List<Long> customerIds) {
+        PhieuGiamGia pgg = phieuGiamGiaRepository.findById(idVoucher)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu giảm giá ID: " + idVoucher));
+
+        List<KhachHangPhieuGiamGia> existing = khachHangPhieuGiamGiaRepository.findByPhieuGiamGiaId(idVoucher);
+        // Soft deactivate existing
+        for (KhachHangPhieuGiamGia item : existing) {
+            item.setTrangThai(0);
+            khachHangPhieuGiamGiaRepository.save(item);
+        }
+
+        if (customerIds != null) {
+            for (Long cId : customerIds) {
+                KhachHang kh = khachHangRepository.findById(cId).orElse(null);
+                if (kh != null) {
+                    Optional<KhachHangPhieuGiamGia> matched = existing.stream()
+                            .filter(e -> e.getKhachHang().getId().equals(cId))
+                            .findFirst();
+
+                    if (matched.isPresent()) {
+                        KhachHangPhieuGiamGia item = matched.get();
+                        item.setTrangThai(1);
+                        khachHangPhieuGiamGiaRepository.save(item);
+                    } else {
+                        KhachHangPhieuGiamGia newItem = KhachHangPhieuGiamGia.builder()
+                                .phieuGiamGia(pgg)
+                                .khachHang(kh)
+                                .trangThai(1)
+                                .build();
+                        khachHangPhieuGiamGiaRepository.save(newItem);
+                    }
+                }
+            }
+        }
     }
 
     private PhieuGiamGiaResponseDTO mapVoucherToDTO(PhieuGiamGia p) {
@@ -436,27 +634,29 @@ class GiamGiaServiceImpl implements GiamGiaService {
         }
 
         List<DotGiamGiaChiTiet> details = dotGiamGiaChiTietRepository.findByDotGiamGiaId(d.getId());
-        List<DotGiamGiaChiTietResponseDTO> dtos = details.stream().map(c -> {
-            SanPhamChiTiet spct = c.getSanPhamChiTiet();
-            SanPham sp = spct != null ? spct.getSanPham() : null;
-            return DotGiamGiaChiTietResponseDTO.builder()
-                    .id(c.getId())
-                    .idDotGiamGia(d.getId())
-                    .idSanPhamChiTiet(spct != null ? spct.getId() : null)
-                    .idSanPham(sp != null ? sp.getId() : null)
-                    .tenSanPham(sp != null ? sp.getTenSanPham() : "")
-                    .maSpct(spct != null ? spct.getMaSpct() : "")
-                    .maVach(spct != null ? spct.getMaVach() : "")
-                    .tenMauSac(spct != null && spct.getMauSac() != null ? spct.getMauSac().getTenMau() : "")
-                    .tenKichCo(spct != null && spct.getKichCo() != null ? spct.getKichCo().getTenKichCo() : "")
-                    .giaGoc(spct != null ? spct.getGiaBan() : BigDecimal.ZERO)
-                    .phanTramGiam(c.getPhanTramGiam())
-                    .giaSauGiam(c.getGiaSauGiam())
-                    .soLuong(c.getSoLuong())
-                    .soLuongTonHienTai(spct != null ? spct.getSoLuongTon() : 0)
-                    .trangThai(c.getTrangThai())
-                    .build();
-        }).collect(Collectors.toList());
+        List<DotGiamGiaChiTietResponseDTO> dtos = details.stream()
+                .filter(c -> c.getTrangThai() != null && c.getTrangThai() == 1)
+                .map(c -> {
+                    SanPhamChiTiet spct = c.getSanPhamChiTiet();
+                    SanPham sp = spct != null ? spct.getSanPham() : null;
+                    return DotGiamGiaChiTietResponseDTO.builder()
+                            .id(c.getId())
+                            .idDotGiamGia(d.getId())
+                            .idSanPhamChiTiet(spct != null ? spct.getId() : null)
+                            .idSanPham(sp != null ? sp.getId() : null)
+                            .tenSanPham(sp != null ? sp.getTenSanPham() : "")
+                            .maSpct(spct != null ? spct.getMaSpct() : "")
+                            .maVach(spct != null ? spct.getMaVach() : "")
+                            .tenMauSac(spct != null && spct.getMauSac() != null ? spct.getMauSac().getTenMau() : "")
+                            .tenKichCo(spct != null && spct.getKichCo() != null ? spct.getKichCo().getTenKichCo() : "")
+                            .giaGoc(spct != null ? spct.getGiaBan() : BigDecimal.ZERO)
+                            .phanTramGiam(c.getPhanTramGiam())
+                            .giaSauGiam(c.getGiaSauGiam())
+                            .soLuong(c.getSoLuong())
+                            .soLuongTonHienTai(spct != null ? spct.getSoLuongTon() : 0)
+                            .trangThai(c.getTrangThai())
+                            .build();
+                }).collect(Collectors.toList());
 
         return DotGiamGiaResponseDTO.builder()
                 .id(d.getId())
@@ -468,13 +668,13 @@ class GiamGiaServiceImpl implements GiamGiaService {
                 .ngayKetThuc(d.getNgayKetThuc())
                 .trangThai(d.getTrangThai())
                 .tinhTrang(tinhTrang)
-                .soLuongSanPham(details.size())
+                .soLuongSanPham(dtos.size())
                 .danhSachChiTiet(dtos)
                 .build();
     }
 
-    private String formatMoney(BigDecimal val) {
-        if (val == null) return "0 đ";
-        return String.format("%,d đ", val.longValue());
+    private String formatMoney(BigDecimal amount) {
+        if (amount == null) return "0 đ";
+        return String.format("%,.0f đ", amount);
     }
 }

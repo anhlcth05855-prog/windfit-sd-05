@@ -54,6 +54,17 @@
         </button>
       </div>
     </div>
+
+    <!-- Confirm Logout Dialog -->
+    <ConfirmDialog
+      v-model="showLogoutConfirm"
+      title="Đăng xuất tài khoản"
+      message="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống WindFit?"
+      type="danger"
+      confirmText="Đăng xuất"
+      cancelText="Ở lại"
+      @confirm="executeLogout"
+    />
   </aside>
 </template>
 
@@ -61,20 +72,24 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import ConfirmDialog from '../common/ConfirmDialog.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
 const isCollapsed = ref(false)
+const showLogoutConfirm = ref(false)
 
 function toggleSidebar() {
   isCollapsed.value = !isCollapsed.value
 }
 
 function handleLogout() {
-  if (confirm('Bạn có chắc chắn muốn đăng xuất khỏi hệ thống WindFit?')) {
-    authStore.logout()
-    router.push('/login')
-  }
+  showLogoutConfirm.value = true
+}
+
+function executeLogout() {
+  authStore.logout()
+  router.push('/login')
 }
 </script>
 

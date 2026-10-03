@@ -20,22 +20,22 @@ import java.util.List;
 public class DotGiamGiaRequestDTO {
     private String maDotGiamGia;
 
-    @NotBlank(message = "Ten dot giam gia khong duoc de trong")
+    @NotBlank(message = "Tên đợt giảm giá không được để trống")
     private String tenDotGiamGia;
 
     private String moTa;
     private String dieuKienApDung;
 
-    @NotNull(message = "Ngay bat dau khong duoc de trong")
+    @NotNull(message = "Ngày bắt đầu không được để trống")
     private LocalDateTime ngayBatDau;
 
-    @NotNull(message = "Ngay ket thuc khong duoc de trong")
+    @NotNull(message = "Ngày kết thúc không được để trống")
     private LocalDateTime ngayKetThuc;
 
     @Builder.Default
     private Integer trangThai = 1;
 
-    @NotEmpty(message = "Dot giam gia phai co it nhat mot san pham")
+    @NotEmpty(message = "Đợt giảm giá phải chọn ít nhất một sản phẩm biến thể")
     @Valid
     @Builder.Default
     private List<DotGiamGiaItemRequestDTO> danhSachChiTiet = new ArrayList<>();

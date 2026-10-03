@@ -16,15 +16,15 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class DotGiamGiaItemRequestDTO {
-    @NotNull(message = "ID bien the khong duoc de trong")
+    @NotNull(message = "ID biến thể không được để trống")
     private Long idSanPhamChiTiet;
 
-    @NotNull(message = "Phan tram giam khong duoc de trong")
-    @DecimalMin(value = "1.0", message = "Phan tram giam toi thieu la 1%")
-    @DecimalMax(value = "99.0", message = "Phan tram giam toi da la 99%")
+    @NotNull(message = "Phần trăm giảm không được để trống")
+    @DecimalMin(value = "0.01", message = "Phần trăm giảm tối thiểu là 0.01%")
+    @DecimalMax(value = "100.0", message = "Phần trăm giảm tối đa là 100%")
     private BigDecimal phanTramGiam;
 
-    @NotNull(message = "So luong khong duoc de trong")
-    @Min(value = 1, message = "So luong toi thieu la 1")
+    @NotNull(message = "Số lượng không được để trống")
+    @Min(value = 1, message = "Số lượng tối thiểu là 1")
     private Integer soLuong;
 }

@@ -159,7 +159,7 @@ class ThuocTinhController {
         return ResponseEntity.ok(res);
     }
 
-    @DeleteMapping("/{type}/{id}")
+    @PatchMapping("/{type}/{id}/toggle-status")
     public ResponseEntity<ApiResponse<Void>> toggleStatus(
             @PathVariable String type,
             @PathVariable Long id) {

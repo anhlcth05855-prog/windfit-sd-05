@@ -63,7 +63,7 @@ export const attributeService = {
     return api.put(`/thuoc-tinh/${type}/${id}`, data)
   },
   toggleStatus(type, id) {
-    return api.delete(`/thuoc-tinh/${type}/${id}`)
+    return api.patch(`/thuoc-tinh/${type}/${id}/toggle-status`)
   }
 }
 
@@ -122,6 +122,15 @@ export const discountService = {
   getAvailableVouchers() {
     return api.get('/phieu-giam-gia/available')
   },
+  getCustomers(params = {}) {
+    return api.get('/phieu-giam-gia/customers', { params })
+  },
+  getAssignedCustomers(id) {
+    return api.get(`/phieu-giam-gia/${id}/assigned-customers`)
+  },
+  assignCustomers(id, customerIds) {
+    return api.post(`/phieu-giam-gia/${id}/assign-customers`, customerIds)
+  },
   getCampaigns(params = {}) {
     return api.get('/dot-giam-gia', { params })
   },
@@ -136,6 +145,9 @@ export const discountService = {
   },
   toggleCampaignStatus(id) {
     return api.patch(`/dot-giam-gia/${id}/toggle-status`)
+  },
+  getSanPhamChiTiet(params = {}) {
+    return api.get('/dot-giam-gia/san-pham-chi-tiet', { params })
   }
 }
 

@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/auth'
 import AdminLayout from '../layout/AdminLayout.vue'
 import LoginView from '../views/auth/LoginView.vue'
 import VoucherList from '../views/vouchers/VoucherList.vue'
+import CampaignList from '../views/vouchers/CampaignList.vue'
 
 const routes = [
   {
@@ -25,7 +26,9 @@ const routes = [
       },
       {
         path: 'dot-giam-gia',
-        redirect: '/admin/phieu-giam-gia'
+        name: 'CampaignList',
+        component: CampaignList,
+        meta: { title: 'Đợt Giảm Giá (Sale)', requiresAuth: true }
       }
     ]
   },

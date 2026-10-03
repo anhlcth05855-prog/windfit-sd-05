@@ -1,5 +1,8 @@
 <template>
   <div class="admin-layout-wrapper">
+    <!-- Toast Container for system notifications -->
+    <ToastContainer />
+
     <!-- Sidebar -->
     <TheSidebar />
 
@@ -10,7 +13,7 @@
         <div class="header-left">
           <div class="breadcrumb-wrap">
             <span class="breadcrumb-item-lead text-muted">
-              <i class="bi bi-house-door-fill me-1"></i> WindFit
+              <i class="bi bi-tag-fill me-1 text-primary"></i> Phân Hệ
             </span>
             <i class="bi bi-chevron-right breadcrumb-separator"></i>
             <span class="breadcrumb-item-current fw-bold text-dark">
@@ -22,19 +25,17 @@
         <div class="header-right">
           <div class="status-pill d-none d-md-flex">
             <span class="pulse-dot"></span>
-            <span class="status-text">Hệ Thống Trực Tuyến</span>
+            <span class="status-text">Hệ Thống Sẵn Sàng</span>
           </div>
 
-          <div class="notification-wrap">
-            <button class="icon-btn" title="Thông báo đơn hàng">
-              <i class="bi bi-bell-fill"></i>
-              <span class="badge-count">3</span>
-            </button>
-          </div>
+          <router-link to="/admin/phieu-giam-gia" class="btn btn-outline-primary btn-sm fw-bold d-flex align-items-center gap-1 shadow-sm px-3">
+            <i class="bi bi-ticket-perforated-fill"></i>
+            <span class="d-none d-sm-inline">Phiếu Giảm Giá</span>
+          </router-link>
 
-          <router-link to="/admin/pos" class="btn btn-warning btn-sm fw-bold d-flex align-items-center gap-1 shadow-sm px-3">
-            <i class="bi bi-cash-stack"></i>
-            <span>Vào POS</span>
+          <router-link to="/admin/dot-giam-gia" class="btn btn-primary btn-sm fw-bold d-flex align-items-center gap-1 shadow-sm px-3">
+            <i class="bi bi-fire"></i>
+            <span class="d-none d-sm-inline">Đợt Giảm Giá</span>
           </router-link>
 
           <div class="user-dropdown">
@@ -81,6 +82,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import TheSidebar from '../components/layout/TheSidebar.vue'
+import ToastContainer from '../components/common/ToastContainer.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
