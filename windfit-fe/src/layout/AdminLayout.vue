@@ -135,7 +135,7 @@ const pageTitle = computed(() => {
   }
 }
 
-/* ===== Header Styles (inlined from TheHeader.vue) ===== */
+/* Header Styles */
 .windfit-header {
   height: 72px;
   background: #ffffff;
@@ -255,7 +255,7 @@ const pageTitle = computed(() => {
   margin-top: -2px;
 }
 
-/* ===== Footer Styles ===== */
+/* Footer Styles */
 .windfit-footer {
   padding: 1rem 1.75rem;
   background: #ffffff;

@@ -43,14 +43,11 @@ const router = createRouter({
   routes
 })
 
-// Navigation Guard
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
-  // Set document title
   document.title = (to.meta?.title ? `${to.meta.title} | ` : '') + 'WindFit - Phân Hệ Giảm Giá'
 
-  // Kiểm tra đăng nhập
   if (to.meta?.requiresAuth && !authStore.isAuthenticated) {
     return next('/login')
   }

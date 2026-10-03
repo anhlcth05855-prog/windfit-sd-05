@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -75,7 +75,7 @@ const props = defineProps({
   },
   type: {
     type: String,
-    default: 'warning' // 'danger' | 'warning' | 'info' | 'success'
+    default: 'warning'
   },
   confirmText: {
     type: String,

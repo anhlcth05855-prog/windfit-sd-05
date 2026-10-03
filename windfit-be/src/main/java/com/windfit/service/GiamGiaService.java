@@ -1,11 +1,30 @@
 package com.windfit.service;
 
-import com.windfit.dto.discount.*;
+import com.windfit.dto.discount.DotGiamGiaChiTietResponseDTO;
+import com.windfit.dto.discount.DotGiamGiaItemRequestDTO;
+import com.windfit.dto.discount.DotGiamGiaRequestDTO;
+import com.windfit.dto.discount.DotGiamGiaResponseDTO;
+import com.windfit.dto.discount.KhachHangSimpleDTO;
+import com.windfit.dto.discount.PhieuGiamGiaRequestDTO;
+import com.windfit.dto.discount.PhieuGiamGiaResponseDTO;
+import com.windfit.dto.discount.ValidateVoucherRequest;
+import com.windfit.dto.discount.ValidateVoucherResponse;
 import com.windfit.dto.product.SanPhamChiTietResponseDTO;
-import com.windfit.entity.*;
-import com.windfit.repository.*;
-import lombok.RequiredArgsConstructor;
+import com.windfit.entity.DotGiamGia;
+import com.windfit.entity.DotGiamGiaChiTiet;
+import com.windfit.entity.KhachHang;
+import com.windfit.entity.KhachHangPhieuGiamGia;
+import com.windfit.entity.PhieuGiamGia;
+import com.windfit.entity.SanPham;
+import com.windfit.entity.SanPhamChiTiet;
+import com.windfit.repository.DotGiamGiaChiTietRepository;
+import com.windfit.repository.DotGiamGiaRepository;
+import com.windfit.repository.KhachHangPhieuGiamGiaRepository;
+import com.windfit.repository.KhachHangRepository;
+import com.windfit.repository.PhieuGiamGiaRepository;
+import com.windfit.repository.SanPhamChiTietRepository;
 import jakarta.persistence.criteria.Predicate;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +36,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public interface GiamGiaService {
@@ -463,7 +487,7 @@ class GiamGiaServiceImpl implements GiamGiaService {
 
         d = dotGiamGiaRepository.save(d);
 
-        // Soft-update child details: No hard delete!
+        // Đánh dấu ngừng áp dụng chi tiết cũ trước khi cập nhật
         List<DotGiamGiaChiTiet> existingDetails = dotGiamGiaChiTietRepository.findByDotGiamGiaId(d.getId());
         for (DotGiamGiaChiTiet detail : existingDetails) {
             detail.setTrangThai(0);
@@ -479,7 +503,6 @@ class GiamGiaServiceImpl implements GiamGiaService {
                 BigDecimal discountMultiplier = BigDecimal.valueOf(100).subtract(phanTram).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
                 BigDecimal giaSauGiam = spct.getGiaBan().multiply(discountMultiplier).setScale(0, RoundingMode.HALF_UP);
 
-                // Check if existing record exists for this spct in this campaign
                 Optional<DotGiamGiaChiTiet> matched = existingDetails.stream()
                         .filter(ed -> ed.getSanPhamChiTiet().getId().equals(spct.getId()))
                         .findFirst();
@@ -601,7 +624,7 @@ class GiamGiaServiceImpl implements GiamGiaService {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu giảm giá ID: " + idVoucher));
 
         List<KhachHangPhieuGiamGia> existing = khachHangPhieuGiamGiaRepository.findByPhieuGiamGiaId(idVoucher);
-        // Soft deactivate existing
+        // Đánh dấu ngừng áp dụng danh sách khách hàng cũ
         for (KhachHangPhieuGiamGia item : existing) {
             item.setTrangThai(0);
             khachHangPhieuGiamGiaRepository.save(item);

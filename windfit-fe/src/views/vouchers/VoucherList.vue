@@ -254,7 +254,7 @@
       />
     </div>
 
-    <!-- MODAL 1: CREATE / EDIT VOUCHER -->
+    <!-- Modal Form Voucher -->
     <div class="modal fade" id="voucherFormModal" tabindex="-1" aria-hidden="true" ref="voucherFormModalRef">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -422,7 +422,7 @@
       </div>
     </div>
 
-    <!-- MODAL 2: VOUCHER SIMULATOR -->
+    <!-- Modal Simulator -->
     <div class="modal fade" id="simulatorModal" tabindex="-1" aria-hidden="true" ref="simulatorModalRef">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -494,7 +494,7 @@
       </div>
     </div>
 
-    <!-- MODAL 3: GÁN KHÁCH HÀNG VOUCHER CÁ NHÂN -->
+    <!-- Modal Gán Khách Hàng -->
     <div class="modal fade" id="customerAssignModal" tabindex="-1" aria-hidden="true" ref="customerAssignModalRef">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -609,7 +609,7 @@
       </div>
     </div>
 
-    <!-- CONFIRM DIALOG: Toggle Status & Form Discard -->
+    <!-- Confirm Dialog -->
     <ConfirmDialog
       v-model="confirmDialog.show"
       :title="confirmDialog.title"
@@ -638,7 +638,6 @@ import LoadingState from '@/components/common/LoadingState.vue'
 
 const toast = useToast()
 
-// Data States
 const vouchers = ref([])
 const loading = ref(false)
 const submitting = ref(false)
@@ -648,7 +647,6 @@ const totalPages = ref(0)
 const page = ref(0)
 const size = ref(10)
 
-// Filters
 const filters = reactive({
   keyword: '',
   loaiGiamGia: '',
@@ -657,12 +655,10 @@ const filters = reactive({
   denNgay: ''
 })
 
-// Stats Computed
 const activeCount = computed(() => vouchers.value.filter(v => v.trangThai === 1 && v.tinhTrang === 'DANG_DIEN_RA').length)
 const totalUsedCount = computed(() => vouchers.value.reduce((acc, cur) => acc + (cur.soLuongDaDung || 0), 0))
 const lockedCount = computed(() => vouchers.value.filter(v => v.trangThai === 0).length)
 
-// Modal References
 const voucherFormModalRef = ref(null)
 const simulatorModalRef = ref(null)
 const customerAssignModalRef = ref(null)
@@ -670,7 +666,6 @@ let formModalInstance = null
 let simulatorModalInstance = null
 let customerModalInstance = null
 
-// Form States
 const isEditMode = ref(false)
 const currentVoucherId = ref(null)
 const form = reactive({
@@ -686,9 +681,7 @@ const form = reactive({
   trangThai: 1
 })
 const errors = reactive({})
-let isFormDirty = false
 
-// Simulator States
 const sim = reactive({
   code: '',
   orderAmount: 500000,
@@ -696,7 +689,6 @@ const sim = reactive({
   result: null
 })
 
-// Customer Assignment States
 const currentVoucherForCustomer = ref(null)
 const customersList = ref([])
 const customersLoading = ref(false)
@@ -707,10 +699,9 @@ const selectedCustomerIds = ref([])
 const savingCustomers = ref(false)
 let customerDebounceTimer = null
 
-// Confirm Dialog State
 const confirmDialog = reactive({
   show: false,
-  actionType: '', // 'toggle-status' | 'discard-form' | 'save-form'
+  actionType: '',
   title: '',
   message: '',
   targetName: '',
@@ -721,7 +712,6 @@ const confirmDialog = reactive({
   payload: null
 })
 
-// ---------------------- LOAD VOUCHERS ----------------------
 async function loadVouchers() {
   loading.value = true
   errorMessage.value = ''
@@ -785,7 +775,6 @@ function onSizeChange(newSize) {
   loadVouchers()
 }
 
-// ---------------------- FORM VALIDATION & ACTIONS ----------------------
 function resetForm() {
   form.maPhieuGiamGia = ''
   form.tenPhieuGiamGia = ''
@@ -802,7 +791,6 @@ function resetForm() {
   form.ngayKetThuc = formatDateTimeLocal(sevenDaysLater)
 
   clearErrors()
-  isFormDirty = false
 }
 
 function clearErrors() {
@@ -938,7 +926,6 @@ async function submitForm() {
   }
 }
 
-// ---------------------- TOGGLE STATUS (CONFIRM DIALOG) ----------------------
 function confirmToggleStatus(voucher) {
   const isDeactivating = voucher.trangThai === 1
   confirmDialog.actionType = 'toggle-status'
@@ -972,7 +959,6 @@ async function onConfirmDialogAction() {
   }
 }
 
-// ---------------------- CUSTOMER ASSIGNMENT ----------------------
 async function openCustomerAssignModal(voucher) {
   currentVoucherForCustomer.value = voucher
   customerPage.value = 0
@@ -985,7 +971,7 @@ async function openCustomerAssignModal(voucher) {
       selectedCustomerIds.value = assignedRes.data || []
     }
   } catch (err) {
-    console.error(err)
+    toast.error('Không thể lấy danh sách khách hàng đã gán')
   }
 
   loadCustomers()
@@ -1070,7 +1056,6 @@ async function saveCustomerAssignments() {
   }
 }
 
-// ---------------------- SIMULATOR ----------------------
 function openSimulatorModal() {
   sim.code = ''
   sim.orderAmount = 500000
@@ -1106,7 +1091,6 @@ async function runSimulation() {
   }
 }
 
-// ---------------------- UTILS ----------------------
 function copyCode(code) {
   navigator.clipboard.writeText(code)
   toast.info(`Đã sao chép mã '${code}' vào clipboard!`)

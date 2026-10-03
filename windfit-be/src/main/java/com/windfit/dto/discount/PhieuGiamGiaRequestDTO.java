@@ -50,7 +50,6 @@ public class PhieuGiamGiaRequestDTO {
     @Builder.Default
     private Integer trangThai = 1;
 
-    // Danh sách id khách hàng được gán voucher riêng tư (tùy chọn)
     @Builder.Default
     private List<Long> customerIds = new ArrayList<>();
 }

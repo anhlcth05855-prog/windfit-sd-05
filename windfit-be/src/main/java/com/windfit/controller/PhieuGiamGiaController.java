@@ -1,7 +1,13 @@
 package com.windfit.controller;
 
 import com.windfit.dto.ApiResponse;
-import com.windfit.dto.discount.*;
+import com.windfit.dto.discount.DotGiamGiaRequestDTO;
+import com.windfit.dto.discount.DotGiamGiaResponseDTO;
+import com.windfit.dto.discount.KhachHangSimpleDTO;
+import com.windfit.dto.discount.PhieuGiamGiaRequestDTO;
+import com.windfit.dto.discount.PhieuGiamGiaResponseDTO;
+import com.windfit.dto.discount.ValidateVoucherRequest;
+import com.windfit.dto.discount.ValidateVoucherResponse;
 import com.windfit.dto.product.SanPhamChiTietResponseDTO;
 import com.windfit.service.GiamGiaService;
 import jakarta.validation.Valid;

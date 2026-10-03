@@ -13,7 +13,6 @@ const props = defineProps({
     type: [String, Number],
     required: true
   },
-  // Optional override for custom text
   customText: {
     type: String,
     default: ''
@@ -23,7 +22,6 @@ const props = defineProps({
 const badgeConfig = computed(() => {
   const s = props.status
 
-  // If status is string
   if (typeof s === 'string') {
     switch (s.toUpperCase()) {
       case 'DANG_DIEN_RA':
@@ -47,7 +45,6 @@ const badgeConfig = computed(() => {
     }
   }
 
-  // If status is number (1 / 0)
   if (s === 1 || s === '1') {
     return { text: 'Hoạt động', badge: 'bg-emerald-subtle text-emerald border-emerald', dot: 'bg-emerald' }
   } else if (s === 0 || s === '0') {

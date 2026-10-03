@@ -224,7 +224,7 @@
       />
     </div>
 
-    <!-- MODAL 1: CREATE / EDIT CAMPAIGN -->
+    <!-- Modal Form Campaign -->
     <div class="modal fade" id="campaignFormModal" tabindex="-1" aria-hidden="true" ref="campaignFormModalRef">
       <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -414,7 +414,7 @@
       </div>
     </div>
 
-    <!-- MODAL 2: SPCT SELECTOR MODAL (CHỌN BIẾN THỂ ÁO KHOÁC GIÓ) -->
+    <!-- Modal Chọn Biến Thể -->
     <div class="modal fade" id="productPickerModal" tabindex="-1" aria-hidden="true" ref="productPickerModalRef">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -543,7 +543,7 @@
       </div>
     </div>
 
-    <!-- MODAL 3: VIEW CAMPAIGN DETAIL -->
+    <!-- Modal Chi Tiết Đợt Giảm Giá -->
     <div class="modal fade" id="campaignDetailModal" tabindex="-1" aria-hidden="true" ref="campaignDetailModalRef">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -601,7 +601,7 @@
       </div>
     </div>
 
-    <!-- CONFIRM DIALOG: Toggle Status & Form Discard -->
+    <!-- Confirm Dialog -->
     <ConfirmDialog
       v-model="confirmDialog.show"
       :title="confirmDialog.title"
@@ -630,7 +630,6 @@ import LoadingState from '@/components/common/LoadingState.vue'
 
 const toast = useToast()
 
-// Data States
 const campaigns = ref([])
 const loading = ref(false)
 const submitting = ref(false)
@@ -640,7 +639,6 @@ const totalPages = ref(0)
 const page = ref(0)
 const size = ref(10)
 
-// Filters
 const filters = reactive({
   keyword: '',
   trangThai: '',
@@ -648,12 +646,10 @@ const filters = reactive({
   denNgay: ''
 })
 
-// Stats Computed
 const activeCount = computed(() => campaigns.value.filter(c => c.trangThai === 1 && c.tinhTrang === 'DANG_DIEN_RA').length)
 const upcomingCount = computed(() => campaigns.value.filter(c => c.tinhTrang === 'SAP_DIEN_RA').length)
 const endedCount = computed(() => campaigns.value.filter(c => c.trangThai === 0 || c.tinhTrang === 'DA_KET_THUC').length)
 
-// Modal References
 const campaignFormModalRef = ref(null)
 const productPickerModalRef = ref(null)
 const campaignDetailModalRef = ref(null)
@@ -661,7 +657,6 @@ let formModalInstance = null
 let productPickerModalInstance = null
 let detailModalInstance = null
 
-// Form States
 const isEditMode = ref(false)
 const currentCampaignId = ref(null)
 const form = reactive({
@@ -672,11 +667,10 @@ const form = reactive({
   ngayBatDau: '',
   ngayKetThuc: '',
   trangThai: 1,
-  selectedItems: [] // { idSanPhamChiTiet, maSpct, tenSanPham, tenMauSac, tenKichCo, giaGoc, phanTramGiam, giaSauGiam, soLuong, soLuongTonHienTai }
+  selectedItems: []
 })
 const errors = reactive({})
 
-// SPCT Selector States
 const spctList = ref([])
 const spctLoading = ref(false)
 const spctSearchKw = ref('')
@@ -686,10 +680,8 @@ const defaultDiscountPercent = ref(15)
 const pickerSelectedSpctMap = reactive(new Map())
 let spctDebounceTimer = null
 
-// Detail viewing
 const viewingCampaign = ref(null)
 
-// Confirm Dialog State
 const confirmDialog = reactive({
   show: false,
   actionType: '',
@@ -703,7 +695,6 @@ const confirmDialog = reactive({
   payload: null
 })
 
-// ---------------------- LOAD CAMPAIGNS ----------------------
 async function loadCampaigns() {
   loading.value = true
   errorMessage.value = ''
@@ -765,7 +756,6 @@ function onSizeChange(newSize) {
   loadCampaigns()
 }
 
-// ---------------------- FORM HANDLING ----------------------
 function resetForm() {
   form.maDotGiamGia = ''
   form.tenDotGiamGia = ''
@@ -924,7 +914,6 @@ function removeSelectedItem(idx, item) {
   toast.info(`Đã gỡ biến thể '${item.maSpct}' khỏi đợt`)
 }
 
-// ---------------------- SPCT PICKER ----------------------
 function openProductPicker() {
   pickerSelectedSpctMap.clear()
   spctPage.value = 0
@@ -1018,7 +1007,6 @@ function applySelectedSpctToForm() {
   toast.success(`Đã thêm ${countAdded} biến thể áo khoác vào đợt giảm giá!`)
 }
 
-// ---------------------- DETAIL MODAL ----------------------
 async function openDetailModal(c) {
   try {
     const res = await discountService.getCampaignById(c.id)
@@ -1031,7 +1019,6 @@ async function openDetailModal(c) {
   }
 }
 
-// ---------------------- TOGGLE STATUS (CONFIRM DIALOG) ----------------------
 function confirmToggleStatus(campaign) {
   const isDeactivating = campaign.trangThai === 1
   confirmDialog.actionType = 'toggle-status'
@@ -1065,7 +1052,6 @@ async function onConfirmDialogAction() {
   }
 }
 
-// ---------------------- UTILS ----------------------
 function copyCode(code) {
   navigator.clipboard.writeText(code)
   toast.info(`Đã sao chép mã '${code}' vào clipboard!`)
