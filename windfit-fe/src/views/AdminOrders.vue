@@ -329,6 +329,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { hoaDonService } from '../services/hoaDonService.js'
+import { showToast } from '../utils/dialog.js'
 import InvoiceDetailModal from '../components/InvoiceDetailModal.vue'
 import InvoicePrintModal from '../components/InvoicePrintModal.vue'
 
@@ -482,6 +483,7 @@ function resetFilters() {
     priceTier: 'all'
   }
   page.value = 0
+  showToast.info('Đã thiết lập lại bộ lọc!')
 }
 
 function countKenh(kb) {
@@ -514,6 +516,7 @@ async function handleStatusChange({ id, newStatus }) {
   if (selectedOrder.value && selectedOrder.value.id === id) {
     selectedOrder.value = danhSachGoc.value.find(h => h.id === id)
   }
+  showToast.success('Cập nhật trạng thái đơn hàng thành công!')
 }
 
 async function handleCancelOrder({ id, reason }) {
@@ -522,6 +525,7 @@ async function handleCancelOrder({ id, reason }) {
   if (selectedOrder.value && selectedOrder.value.id === id) {
     selectedOrder.value = danhSachGoc.value.find(h => h.id === id)
   }
+  showToast.warning('Đã hủy hóa đơn và hoàn lại tồn kho áo gió!')
 }
 
 async function handleRequestReturn({ id, reason, amount }) {
@@ -530,6 +534,7 @@ async function handleRequestReturn({ id, reason, amount }) {
   if (selectedOrder.value && selectedOrder.value.id === id) {
     selectedOrder.value = danhSachGoc.value.find(h => h.id === id)
   }
+  showToast.info('Đã tiếp nhận yêu cầu đổi / hoàn hàng!')
 }
 
 async function handleApproveReturn({ id }) {
@@ -538,6 +543,7 @@ async function handleApproveReturn({ id }) {
   if (selectedOrder.value && selectedOrder.value.id === id) {
     selectedOrder.value = danhSachGoc.value.find(h => h.id === id)
   }
+  showToast.success('Đã duyệt hoàn hàng và hoàn tiền thành công!')
 }
 
 async function handleRejectReturn({ id, reason }) {
@@ -546,6 +552,7 @@ async function handleRejectReturn({ id, reason }) {
   if (selectedOrder.value && selectedOrder.value.id === id) {
     selectedOrder.value = danhSachGoc.value.find(h => h.id === id)
   }
+  showToast.warning('Đã từ chối yêu cầu hoàn hàng!')
 }
 
 function getTotalItems(hd) {

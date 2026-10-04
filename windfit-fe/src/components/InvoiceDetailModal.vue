@@ -239,6 +239,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { showConfirm, showDangerConfirm, showPrompt } from '../utils/dialog.js'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -274,7 +275,14 @@ const nextActionIcon = computed(() => {
   }
 })
 
-function handleNextStatus() {
+async function handleNextStatus() {
+  if (!props.hoaDon) return
+  const isConfirmed = await showConfirm(
+    'Xác nhận chuyển trạng thái',
+    `Bạn có chắc chắn muốn thực hiện "${nextActionText.value}" cho hóa đơn ${props.hoaDon.maHoaDon}?`
+  )
+  if (!isConfirmed) return
+
   let next = 3
   if (props.hoaDon.trangThai === 0) next = 1
   else if (props.hoaDon.trangThai === 1) next = 2
@@ -282,28 +290,52 @@ function handleNextStatus() {
   emit('statusChange', { id: props.hoaDon.id, newStatus: next })
 }
 
-function handleCancelOrder() {
-  const reason = prompt('Nhập lý do hủy hóa đơn:')
+async function handleCancelOrder() {
+  if (!props.hoaDon) return
+  const reason = await showPrompt(
+    'Hủy Hóa Đơn',
+    `Hành động này sẽ hủy hóa đơn ${props.hoaDon.maHoaDon} và cộng hoàn lại số lượng tồn kho áo gió. Vui lòng nhập lý do:`,
+    'Nhập lý do hủy hóa đơn...',
+    'Xác nhận hủy đơn'
+  )
   if (reason) {
     emit('cancelOrder', { id: props.hoaDon.id, reason })
   }
 }
 
-function handleRequestReturn() {
-  const reason = prompt('Nhập lý do khách yêu cầu hoàn hàng (Chính sách trong vòng 7 ngày):')
+async function handleRequestReturn() {
+  if (!props.hoaDon) return
+  const reason = await showPrompt(
+    'Yêu Cầu Đổi / Hoàn Hàng',
+    `Khách hàng yêu cầu đổi trả cho đơn ${props.hoaDon.maHoaDon} (Chính sách 7 ngày). Vui lòng nhập lý do:`,
+    'Nhập lý do đổi/hoàn hàng...',
+    'Gửi yêu cầu'
+  )
   if (reason) {
     emit('requestReturn', { id: props.hoaDon.id, reason, amount: props.hoaDon.thanhTien })
   }
 }
 
-function handleApproveReturn() {
-  if (confirm(`Xác nhận hoàn hàng cho hóa đơn ${props.hoaDon.maHoaDon}? Hệ thống sẽ cộng lại số lượng tồn kho tự động.`)) {
+async function handleApproveReturn() {
+  if (!props.hoaDon) return
+  const isConfirmed = await showDangerConfirm(
+    'Chấp Thuận Hoàn Hàng',
+    `Xác nhận chấp thuận hoàn hàng cho hóa đơn ${props.hoaDon.maHoaDon}? Hệ thống sẽ cộng lại tồn kho và hoàn tiền cho khách.`,
+    'Xác nhận hoàn hàng'
+  )
+  if (isConfirmed) {
     emit('approveReturn', { id: props.hoaDon.id })
   }
 }
 
-function handleRejectReturn() {
-  const reason = prompt('Nhập lý do từ chối yêu cầu hoàn hàng:')
+async function handleRejectReturn() {
+  if (!props.hoaDon) return
+  const reason = await showPrompt(
+    'Từ Chối Hoàn Hàng',
+    `Từ chối yêu cầu hoàn hàng cho hóa đơn ${props.hoaDon.maHoaDon}. Vui lòng nhập lý do từ chối:`,
+    'Nhập lý do từ chối...',
+    'Xác nhận từ chối'
+  )
   if (reason) {
     emit('rejectReturn', { id: props.hoaDon.id, reason })
   }

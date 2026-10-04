@@ -207,6 +207,7 @@
 import { ref, computed } from 'vue'
 import { danhSachSanPham, danhSachKhachHang, danhSachVoucher } from '../data/mockData.js'
 import { hoaDonService } from '../services/hoaDonService.js'
+import { showConfirm, showToast } from '../utils/dialog.js'
 
 const emit = defineEmits(['switchAdmin', 'orderCreated'])
 
@@ -303,11 +304,18 @@ async function submitCheckout() {
   if (cartItems.value.length === 0) return
 
   const customer = danhSachKhachHang.find(k => k.id === selectedCustomerId.value)
+  const customerName = customer ? customer.hoTen : 'Khách lẻ tại quầy'
+
+  const isConfirmed = await showConfirm(
+    'Xác nhận tạo hóa đơn & Thanh toán',
+    `Tạo hóa đơn cho ${customerName} (${cartItems.value.length} sản phẩm)? Tổng thanh toán: ${formatVND(calcFinal.value)}`
+  )
+  if (!isConfirmed) return
 
   const payload = {
     kenhBan: 'TAI_QUAY',
     idKhachHang: selectedCustomerId.value,
-    tenKhachHang: customer ? customer.hoTen : 'Khách lẻ tại quầy',
+    tenKhachHang: customerName,
     sdtKhachHang: customer ? customer.soDienThoai : '',
     maPhieuGiamGia: selectedVoucherCode.value || null,
     tienGiam: calcDiscount.value,
@@ -326,7 +334,7 @@ async function submitCheckout() {
   }
 
   const created = await hoaDonService.taoHoaDon(payload)
-  alert(`Tạo hóa đơn thành công! Mã hóa đơn: ${created.maHoaDon}`)
+  showToast.success(`Tạo hóa đơn ${created.maHoaDon} thành công!`)
   cartItems.value = []
   customerCash.value = 0
   selectedVoucherCode.value = ''
